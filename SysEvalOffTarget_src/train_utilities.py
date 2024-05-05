@@ -74,13 +74,14 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
     negative_sequence_features_train, sequence_labels_train = None, None
 
     # set transfer_learning setting if needed
+    # 'tree_method': 'gpu_hist' is deprecated, changed in 'device': 'cuda'
     if xgb_model is not None:
         # update the trees or train additional trees
         transfer_learning_args = {'process_type': 'update', 'updater': 'refresh'} \
                                  if transfer_learning_type == 'update' \
-                                 else {'tree_method': 'gpu_hist'}
+                                 else {'device': 'cuda'}
     else:
-        transfer_learning_args = {'tree_method': 'gpu_hist'}
+        transfer_learning_args = {'device': 'cuda'}
 
     # model_type can get: 'classifier, regression_with_negatives, regression_without_negatives
     # in case we don't have k_fold, we train all the dataset with test set.

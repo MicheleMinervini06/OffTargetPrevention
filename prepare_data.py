@@ -38,11 +38,13 @@ def create_positives(dataset_excel_path=general_utilities.CHANGE_SEQ_PATH, data_
     # splitting to positive and undefined sets
     if undefined_mask is not None:
         # take the undefined set
-        dataset_undefined_df = dataset_df[undefined_mask]
-        dataset_undefined_df['label'] = -1
+        # .copy() and .loc added to avoid SettingWithCopyWarning
+        # Pandas is not sure whether dataset_undefined_df is a view or a copy of the original DataFrame
+        dataset_undefined_df = dataset_df[undefined_mask].copy()
+        dataset_undefined_df.loc[:, 'label'] = -1
         # take the positive set
-        dataset_positive_df = dataset_df[~ undefined_mask]
-        dataset_positive_df['label'] = 1
+        dataset_positive_df = dataset_df[~ undefined_mask].copy()
+        dataset_positive_df.loc[:, 'label'] = 1
     else:
         dataset_undefined_df = None
         dataset_positive_df = dataset_df
@@ -97,7 +99,7 @@ def create_negatives(experiment_df, cas_offinder_optional_offtargets_path=genera
 
     print(
         "Dropping for each Target the optional off-targets which their sequences\
-         (or their reverse complement) appear in the experiment (without connection to chromStart)")
+         (or their tt complement) appear in the experiment (without connection to chromStart)")
     # The filter on the reverse complement is for very rare
     # situations (probably do not exist due to the number of mismatch allowed)
     for target in targets:
@@ -179,25 +181,27 @@ def intersection_creation(exclude_on_targets=False):
         suffixes=("_CHANGE", "_GUIDE"))
     change_guide_intersection.to_csv(dir_path + 'CHANGE_GUIDE_intersection.csv')
 
+    # .copy() and .loc added to avoid SettingWithCopyWarning
+    # Pandas is not sure whether dataset_undefined_df is a view or a copy of the original DataFrame
     change_guide_intersection_positives_by_guide = \
-        change_guide_intersection[change_guide_intersection['GUIDEseq_reads'] > 0]
+        change_guide_intersection[change_guide_intersection['GUIDEseq_reads'] > 0].copy()
     change_guide_intersection_negatives_by_guide = \
-        change_guide_intersection[change_guide_intersection['GUIDEseq_reads'] == 0]
-    change_guide_intersection_positives_by_guide['label'] = 1
-    change_guide_intersection_negatives_by_guide['label'] = 0
+        change_guide_intersection[change_guide_intersection['GUIDEseq_reads'] == 0].copy()
+    change_guide_intersection_positives_by_guide.loc[:, 'label'] = 1
+    change_guide_intersection_negatives_by_guide.loc[:, 'label'] = 0
     change_guide_intersection_positives_by_guide.to_csv(
         dir_path + 'CHANGE_GUIDE_intersection_by_GUIDE_positive.csv')
     change_guide_intersection_negatives_by_guide.to_csv(
         dir_path + 'CHANGE_GUIDE_intersection_by_GUIDE_negative.csv')
-    
+
     change_guide_intersection_positives_by_both = \
         change_guide_intersection[
-            (change_guide_intersection['GUIDEseq_reads'] > 0) & (change_guide_intersection['CHANGEseq_reads'] > 0)]
+            (change_guide_intersection['GUIDEseq_reads'] > 0) & (change_guide_intersection['CHANGEseq_reads'] > 0)].copy()
     change_guide_intersection_negatives_by_both = \
         change_guide_intersection[
-            (change_guide_intersection['GUIDEseq_reads'] == 0) & (change_guide_intersection['CHANGEseq_reads'] == 0)]
-    change_guide_intersection_positives_by_both['label'] = 1
-    change_guide_intersection_negatives_by_both['label'] = 0
+            (change_guide_intersection['GUIDEseq_reads'] == 0) & (change_guide_intersection['CHANGEseq_reads'] == 0)].copy()
+    change_guide_intersection_positives_by_both.loc[:, 'label'] = 1
+    change_guide_intersection_negatives_by_both.loc[:, 'label'] = 0
     change_guide_intersection_positives_by_both.to_csv(
         dir_path + 'CHANGE_GUIDE_intersection_by_both_positive.csv')
     change_guide_intersection_negatives_by_both.to_csv(

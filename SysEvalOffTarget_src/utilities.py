@@ -19,8 +19,7 @@ def load_order_sg_rnas(data_type='CHANGE'):
     """
     data_type = 'CHANGE' if data_type.lower() in ('changeseq', 'change-seq', 'change_seq') else data_type
     data_type = 'GUIDE' if data_type.lower() in ('guideseq', 'guide-seq', 'guide_seq') else data_type
-    sg_rnas_s = pd.read_csv(general_utilities.DATASETS_PATH+data_type+'-seq_sgRNAs_ordering.csv',
-                            header=None, squeeze=True)
+    sg_rnas_s = pd.read_csv(general_utilities.DATASETS_PATH+data_type+'-seq_sgRNAs_ordering.csv', header=None)
     return list(sg_rnas_s)
 
 
