@@ -428,7 +428,6 @@ def incremental_union_train_models_folds(models_options=("regression_with_negati
                 negative_guide_seq_df = negative_guide_seq_df[
                     negative_guide_seq_df["target"].isin(targets_guide_seq_train_i)]
 
-
                 positive_guide_seq_df = positive_guide_seq_df[
                     ["chrom", "chromStart", "GUIDEseq_reads", "target", "offtarget_sequence", "distance", "label"]]
                 # just for simplicity, assume GUIDEseq_reads are CHANGEseq_reads

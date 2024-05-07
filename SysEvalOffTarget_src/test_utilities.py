@@ -7,7 +7,7 @@ import xgboost as xgb
 import pandas as pd
 import numpy as np
 
-from scipy.stats.stats import pearsonr, spearmanr
+from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import average_precision_score, precision_score, recall_score, roc_auc_score
 from SysEvalOffTarget_src import utilities
 
@@ -165,8 +165,8 @@ def model_folds_predictions(positive_df, negative_df, targets, nucleotides_to_po
             else:
                 predictions = model.predict(sequence_features_test)
 
-            dataset_df[model_name] = predictions
-            predictions_dfs[j] = predictions_dfs[j].append(dataset_df.copy())
+            dataset_df.loc[:, model_name] = predictions
+            predictions_dfs[j] = pd.concat([predictions_dfs[j], (dataset_df.copy())])
 
     if add_to_results_table:
         predictions_neg_pos_df = \
@@ -198,7 +198,7 @@ def data_for_evaluation(target_positive_df, target_negative_df, entire_df, model
     data_type = "" if data_type is None else data_type + "_"
     reads_col = "{}reads".format(data_type)
     # it might include, but just confirm:
-    target_negative_df[reads_col] = 0
+    target_negative_df.loc[:, reads_col] = 0
     entire_df.loc[entire_df["label"] == 0, reads_col] = 0
 
     # if required exclude targets without positives when transformer is learned by all data
@@ -255,6 +255,8 @@ def data_for_evaluation(target_positive_df, target_negative_df, entire_df, model
             target_preds_and_labels_df[target_preds_and_labels_df["label"] == 0][reads_col]
         target_preds_and_labels_df.loc[target_preds_and_labels_df["label"] == 0, model_name + "_inverse"] = \
             target_preds_and_labels_df[target_preds_and_labels_df["label"] == 0][model_name]
+
+    print(target_preds_and_labels_df)
 
     class_labels = target_preds_and_labels_df["label"].values
     positive_read_labels = target_preds_and_labels_df[target_preds_and_labels_df["label"] == 1][reads_col].values
@@ -431,6 +433,8 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                                 add_to_results_table=True, results_table_path=None, gpu=gpu, save_results=False,
                                 path_prefix=models_path_prefix)
 
+    print("Targets:", targets)
+
     for target in targets:
         if target not in positive_df["target"].unique():
             # if target is not in the test set
@@ -446,7 +450,10 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                                                       data_type, trans_only_positive, trans_all_fold,
                                                       exclude_targets_without_positives)
         # write to result dataframe
-        results_df = results_df.append(target_scores, ignore_index=True)
+        # Convert dictionary to DataFrame
+        target_scores_df = pd.DataFrame.from_dict(target_scores, orient='index', columns=['target']).T
+
+        results_df = pd.concat([results_df, target_scores_df], ignore_index=True)
 
     # evaluation of all data
     target_predictions_positive_df = predictions_positive_df[predictions_positive_df["target"].isin(targets)]
@@ -457,7 +464,11 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                               "All Targets", model_type, model_name, target_predictions_positive_df,
                               target_predictions_negative_df, predictions_df, trans_type, data_type,
                               trans_only_positive, trans_all_fold, exclude_targets_without_positives)
-    results_df = results_df.append(all_targets_scores, ignore_index=True)
+    # Using concat instead of append which is no more defined for a DataFrame
+    # Assuming target_scores is a dictionary containing target scores
+    target_scores_df = pd.DataFrame.from_dict(target_scores, orient='index', columns=['target']).T
+    # Concatenate target_scores_df with results_df
+    results_df = pd.concat([results_df, target_scores_df], ignore_index=True)
 
     dir_path = extract_model_results_path(model_type, data_type, k_fold_number, include_distance_feature,
                                           include_sequence_features, balanced, trans_type, trans_all_fold,

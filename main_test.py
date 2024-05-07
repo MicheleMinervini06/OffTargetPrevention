@@ -116,6 +116,8 @@ def regular_test_models(
                     if task == "evaluation":
                         call_kwargs.update({"models_path_prefix": models_path_prefix,
                                             "results_path_prefix": evaluation_results_path_prefix})
+                        print("Call args", call_args)
+                        print("Call kwargs", call_kwargs)
                         evaluation(*call_args, **call_kwargs)
                     elif task == "prediction":
                         call_kwargs.update({"add_to_results_table": True,
@@ -300,26 +302,26 @@ def main():
         include_sequence_features_options=(True,),
         k_fold_number=10, task="evaluation",
         data_types=('CHANGEseq', 'GUIDEseq'))
-    regular_test_models(
-        models_options=tuple(("classifier", "regression_with_negatives")),
-        include_distance_feature_options=(True, False),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, task="evaluation",
-        data_types=('CHANGEseq', 'GUIDEseq'))
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
 
-    #to obtain the predictions we change the task into prediction
-    regular_test_models(
-        models_options=tuple(("regression_without_negatives",)),
-        include_distance_feature_options=(True,),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, task="prediction",
-        data_types=('CHANGEseq', 'GUIDEseq'))
-    regular_test_models(
-        models_options=tuple(("classifier", "regression_with_negatives")),
-        include_distance_feature_options=(True, False),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, task="prediction",
-        data_types=('CHANGEseq', 'GUIDEseq'))
+    # to obtain the predictions we change the task into prediction
+    # regular_test_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="prediction",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="prediction",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
 
 
 if __name__ == '__main__':

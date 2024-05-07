@@ -20,7 +20,8 @@ def load_order_sg_rnas(data_type='CHANGE'):
     data_type = 'CHANGE' if data_type.lower() in ('changeseq', 'change-seq', 'change_seq') else data_type
     data_type = 'GUIDE' if data_type.lower() in ('guideseq', 'guide-seq', 'guide_seq') else data_type
     sg_rnas_s = pd.read_csv(general_utilities.DATASETS_PATH+data_type+'-seq_sgRNAs_ordering.csv', header=None)
-    return list(sg_rnas_s)
+    # Modificata la conversione del dataframe in lista
+    return sg_rnas_s.iloc[:, 0].tolist()
 
 
 def order_sg_rnas(data_type='CHANGE'):
@@ -93,7 +94,7 @@ def build_sequence_features(dataset_df, nucleotides_to_position_mapping,
 
     # convert dataset_df["target"] -3 position to 'N'
     print("Converting the [-3] positions in each sgRNA sequence to 'N'")
-    dataset_df['target'] = dataset_df['target'].apply(lambda s: s[:-3] + 'N' + s[-2:])
+    dataset_df.loc[:, 'target'] = dataset_df['target'].apply(lambda s: s[:-3] + 'N' + s[-2:])
 
     if include_sequence_features:
         final_result = np.zeros((len(dataset_df), (23*16)+1),
@@ -239,7 +240,7 @@ def extract_model_path(model_type, k_fold_number, include_distance_feature, incl
                                                  trans_only_positive, exclude_targets_without_positives, path_prefix)
     dir_path = general_utilities.FILES_DIR + "models_" + \
         str(k_fold_number) + "fold/" + path_prefix + model_type + \
-        "_xgb_model_fold_" + str(fold_index) + suffix + ".xgb"
+        "_xgb_model_fold_" + str(fold_index) + suffix + ".json"
 
     return dir_path
 
