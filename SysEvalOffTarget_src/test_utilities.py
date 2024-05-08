@@ -450,7 +450,7 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                                                       data_type, trans_only_positive, trans_all_fold,
                                                       exclude_targets_without_positives)
         # write to result dataframe
-        # Convert dictionary to DataFrame
+        # Convert targets_scores dictionary to DataFrame
         target_scores_df = pd.DataFrame.from_dict(target_scores, orient='index', columns=['target']).T
 
         results_df = pd.concat([results_df, target_scores_df], ignore_index=True)
@@ -465,8 +465,8 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                               target_predictions_negative_df, predictions_df, trans_type, data_type,
                               trans_only_positive, trans_all_fold, exclude_targets_without_positives)
     # Using concat instead of append which is no more defined for a DataFrame
-    # Assuming target_scores is a dictionary containing target scores
-    target_scores_df = pd.DataFrame.from_dict(target_scores, orient='index', columns=['target']).T
+    # Transforming all_targets_scores dictionary to a dataframe
+    target_scores_df = pd.DataFrame.from_dict(all_targets_scores, orient='index', columns=['target']).T
     # Concatenate target_scores_df with results_df
     results_df = pd.concat([results_df, target_scores_df], ignore_index=True)
 
@@ -475,6 +475,7 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                                           trans_only_positive, exclude_targets_without_positives,
                                           evaluate_only_distance, suffix_add, results_path_prefix)
     Path(dir_path).parent.mkdir(parents=True, exist_ok=True)
+    print(dir_path)
     results_df.to_csv(dir_path)
 
     return results_df

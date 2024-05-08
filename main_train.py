@@ -11,6 +11,7 @@ from SysEvalOffTarget_src.train_utilities import train
 from SysEvalOffTarget_src.utilities import create_nucleotides_to_position_mapping
 from SysEvalOffTarget_src.utilities import order_sg_rnas, load_order_sg_rnas
 from SysEvalOffTarget_src import general_utilities
+
 random.seed(general_utilities.SEED)
 
 
@@ -85,7 +86,7 @@ def load_train_datasets(union_model, data_type, exclude_on_targets):
         negative_change_seq_df = negative_change_seq_df[
             ["chrom", "chromStart", "target", "offtarget_sequence", "distance", "label"]]
         negative_df = pd.concat([negative_change_seq_df, negative_guide_seq_df])
-        
+
         targets = targets_change_seq
 
     return targets, positive_df, negative_df
@@ -297,58 +298,60 @@ def incremental_train_models_folds(models_options=("regression_with_negatives", 
             random.seed(general_utilities.SEED)
             save_model_dir_path_prefix = 'exclude_on_targets/' if exclude_on_targets else 'include_on_targets/'
             save_model_dir_path_prefix = "GUIDEseq/incremental_folds_training/fold_{}/".format(str(fold_i)) + \
-                save_model_dir_path_prefix
+                                         save_model_dir_path_prefix
             for transfer_learning_type in transfer_learning_types:
                 type_save_model_dir_path_prefix = save_model_dir_path_prefix + \
-                    "GS_TL_" + transfer_learning_type + '/' if transfer_learning_type is not None \
+                                                  "GS_TL_" + transfer_learning_type + '/' if transfer_learning_type is not None \
                     else save_model_dir_path_prefix + "GS/"
                 xgb_model_path = general_utilities.FILES_DIR + "models_1fold/" + \
-                    "train_CHANGE_seq_on_non_overlapping_targets_with_GUIDE_seq/"
+                                 "train_CHANGE_seq_on_non_overlapping_targets_with_GUIDE_seq/"
                 xgb_model_path += 'exclude_on_targets/' if exclude_on_targets else 'include_on_targets/'
                 for i in range(len(train_targets)):
                     path_prefix = type_save_model_dir_path_prefix + "seed_" + str(seed) + \
-                                "/trained_with_" + str(i+1) + "_guides_"
+                                  "/trained_with_" + str(i + 1) + "_guides_"
                     if "classifier" in models_options:
-                        train(positive_df, negative_df, train_targets[0:i+1], nucleotides_to_position_mapping,
-                            data_type='GUIDEseq', model_type="classifier", k_fold_number=1,
-                            include_distance_feature=False, include_sequence_features=True, balanced=False,
-                            trans_type=trans_type, path_prefix=path_prefix,
-                            xgb_model=xgb_model_path +
+                        train(positive_df, negative_df, train_targets[0:i + 1], nucleotides_to_position_mapping,
+                              data_type='GUIDEseq', model_type="classifier", k_fold_number=1,
+                              include_distance_feature=False, include_sequence_features=True, balanced=False,
+                              trans_type=trans_type, path_prefix=path_prefix,
+                              xgb_model=xgb_model_path +
                                         "classifier/classifier_xgb_model_fold_0_without_Kfold_imbalanced.xgb"
-                                        if transfer_learning_type is not None else None,
-                            transfer_learning_type=transfer_learning_type, **kwargs)
-                        train(positive_df, negative_df, train_targets[0:i+1], nucleotides_to_position_mapping,
-                            data_type='GUIDEseq', model_type="classifier", k_fold_number=1,
-                            include_distance_feature=True, include_sequence_features=True, balanced=False,
-                            trans_type=trans_type, path_prefix=path_prefix,
-                            xgb_model=xgb_model_path +
-                                    "classifier/classifier_xgb_model_fold_0_with_distance_without_Kfold_imbalanced.xgb"
-                                    if transfer_learning_type is not None else None,
-                            transfer_learning_type=transfer_learning_type, **kwargs)
+                              if transfer_learning_type is not None else None,
+                              transfer_learning_type=transfer_learning_type, **kwargs)
+                        train(positive_df, negative_df, train_targets[0:i + 1], nucleotides_to_position_mapping,
+                              data_type='GUIDEseq', model_type="classifier", k_fold_number=1,
+                              include_distance_feature=True, include_sequence_features=True, balanced=False,
+                              trans_type=trans_type, path_prefix=path_prefix,
+                              xgb_model=xgb_model_path +
+                                        "classifier/classifier_xgb_model_fold_0_with_distance_without_Kfold_imbalanced.xgb"
+                              if transfer_learning_type is not None else None,
+                              transfer_learning_type=transfer_learning_type, **kwargs)
                     if "regression_with_negatives" in models_options:
-                        train(positive_df, negative_df, train_targets[0:i+1], nucleotides_to_position_mapping,
-                            data_type='GUIDEseq', model_type="regression_with_negatives", k_fold_number=1,
-                            include_distance_feature=False, include_sequence_features=True, balanced=False,
-                            trans_type=trans_type, path_prefix=path_prefix,
-                            xgb_model=xgb_model_path + "regression_with_negatives/"
-                            "regression_with_negatives_xgb_model_fold_0_without_Kfold_imbalanced.xgb"
-                            if transfer_learning_type is not None else None,
-                            transfer_learning_type=transfer_learning_type, **kwargs)
-                        train(positive_df, negative_df, train_targets[0:i+1], nucleotides_to_position_mapping,
-                            data_type='GUIDEseq', model_type="regression_with_negatives", k_fold_number=1,
-                            include_distance_feature=True,
-                            include_sequence_features=True, balanced=False,
-                            trans_type=trans_type, path_prefix=path_prefix,
-                            xgb_model=xgb_model_path + "regression_with_negatives/"
-                            "regression_with_negatives_xgb_model_fold_0_with_distance_without_Kfold_imbalanced.xgb"
-                            if transfer_learning_type is not None else None,
-                            transfer_learning_type=transfer_learning_type, **kwargs)
+                        train(positive_df, negative_df, train_targets[0:i + 1], nucleotides_to_position_mapping,
+                              data_type='GUIDEseq', model_type="regression_with_negatives", k_fold_number=1,
+                              include_distance_feature=False, include_sequence_features=True, balanced=False,
+                              trans_type=trans_type, path_prefix=path_prefix,
+                              xgb_model=xgb_model_path + "regression_with_negatives/"
+                                                         "regression_with_negatives_xgb_model_fold_0_without_Kfold_imbalanced.xgb"
+                              if transfer_learning_type is not None else None,
+                              transfer_learning_type=transfer_learning_type, **kwargs)
+                        train(positive_df, negative_df, train_targets[0:i + 1], nucleotides_to_position_mapping,
+                              data_type='GUIDEseq', model_type="regression_with_negatives", k_fold_number=1,
+                              include_distance_feature=True,
+                              include_sequence_features=True, balanced=False,
+                              trans_type=trans_type, path_prefix=path_prefix,
+                              xgb_model=xgb_model_path + "regression_with_negatives/"
+                                                         "regression_with_negatives_xgb_model_fold_0_with_distance_without_Kfold_imbalanced.xgb"
+                              if transfer_learning_type is not None else None,
+                              transfer_learning_type=transfer_learning_type, **kwargs)
 
 
 def incremental_union_train_models_folds(models_options=("regression_with_negatives", "classifier"),
-        include_distance_feature_options=(True, False), include_sequence_features_options=(True, False),
-        exclude_on_targets=False, trans_type="ln_x_plus_one_trans", seeds=(i for i in range(1, 11)),
-        n_trees=1000, **kwargs):
+                                         include_distance_feature_options=(True, False),
+                                         include_sequence_features_options=(True, False),
+                                         exclude_on_targets=False, trans_type="ln_x_plus_one_trans",
+                                         seeds=(i for i in range(1, 11)),
+                                         n_trees=1000, **kwargs):
     """
     training the CS-GS-Union models in incremental way. For each model type, we're training n
     (where n is the number sgRNA we dedicated for training the TL models) models. we start with one GUIDE-seq sgRNA in a
@@ -398,7 +401,7 @@ def incremental_union_train_models_folds(models_options=("regression_with_negati
             random.shuffle(targets_guide_seq_train)
             random.seed(general_utilities.SEED)
             for i in range(len(targets_guide_seq_train)):
-                targets_guide_seq_train_i = targets_guide_seq_train[:i+1]
+                targets_guide_seq_train_i = targets_guide_seq_train[:i + 1]
                 targets_train = targets_guide_seq_train_i + targets_change_seq_train
                 print("targets in train:", len(targets_train))
                 print(targets_train)
@@ -446,11 +449,11 @@ def incremental_union_train_models_folds(models_options=("regression_with_negati
                 save_model_dir_path_prefix = 'exclude_on_targets/' if exclude_on_targets else 'include_on_targets/'
                 save_model_dir_path_prefix = \
                     "GUIDE_and_CHANGE_seq_{}_trees/incremental_folds_training/fold_{}/".format(str(n_trees),
-                    str(fold_i)) + save_model_dir_path_prefix
+                                                                                               str(fold_i)) + save_model_dir_path_prefix
                 data_type = 'CHANGEseq'
                 for model_type in models_options:
                     path_prefix = save_model_dir_path_prefix + "seed_" + str(seed) + \
-                                "/trained_with_" + str(i+1) + "_guides_"
+                                  "/trained_with_" + str(i + 1) + "_guides_"
                     for include_distance_feature in include_distance_feature_options:
                         for include_sequence_features in include_sequence_features_options:
                             if (not include_distance_feature) and (not include_sequence_features):
@@ -460,6 +463,7 @@ def incremental_union_train_models_folds(models_options=("regression_with_negati
                                   include_distance_feature=include_distance_feature,
                                   include_sequence_features=include_sequence_features, balanced=False,
                                   trans_type=trans_type, path_prefix=path_prefix, n_trees=n_trees, **kwargs)
+
 
 def main():
     """
@@ -473,11 +477,11 @@ def main():
         include_distance_feature_options=(True,),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_type="CHANGEseq")
-    regular_train_models(
-        models_options=tuple(("classifier", "regression_with_negatives")),
-        include_distance_feature_options=(True, False),
-        include_sequence_features_options=tuple((True,)),
-        k_fold_number=10, data_type="CHANGEseq")
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=tuple((True,)),
+    #     k_fold_number=10, data_type="CHANGEseq")
 
 
 if __name__ == '__main__':

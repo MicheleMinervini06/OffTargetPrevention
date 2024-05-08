@@ -171,6 +171,7 @@ def intersection_creation(exclude_on_targets=False):
     change_seq_negatives_df["CHANGEseq_reads"] = 0
 
     guide_seq_df = pd.concat(
+
         [guide_seq_positives_df, guide_seq_negatives_df], ignore_index=True, sort=False)
     change_seq_df = pd.concat(
         [change_seq_positives_df, change_seq_negatives_df], ignore_index=True, sort=False)
