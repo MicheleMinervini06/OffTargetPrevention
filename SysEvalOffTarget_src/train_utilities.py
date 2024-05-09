@@ -154,7 +154,7 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
                                       learning_rate=0.1,
                                       n_estimators=n_trees,
                                       nthread=55,
-                                      **transfer_learning_args)  # tree_method='gpu_hist'
+                                      **transfer_learning_args)
 
             start = time.time()
             model.fit(sequence_features_train, sequence_class_train,
@@ -166,7 +166,7 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
                                      learning_rate=0.1,
                                      n_estimators=n_trees,
                                      nthread=55,
-                                     **transfer_learning_args)  # tree_method='gpu_hist'
+                                     **transfer_learning_args)
 
             start = time.time()
             if model_type == "regression_with_negatives":

@@ -472,16 +472,28 @@ def main():
     # some training examples. You need to run prepre_data.py before trying to train.
     # See regular_train_models, incremental_train_models_folds, and incremental_union_train_models_folds 
     # to train other options.
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # Read counts log transformation improves prediction performance
+
+    # Figure C/D/E/F: CHANGE-seq/Regression-seq-dist/log transformation
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # Figure C/D/E/F: CHANGE-seq/Regression-seq-dist/without log transformation
     regular_train_models(
-        models_options=tuple(("regression_without_negatives",)),
+        models_options=tuple(("regression_with_negatives",)),
         include_distance_feature_options=(True,),
         include_sequence_features_options=(True,),
+        trans_type="no_trans",
         k_fold_number=10, data_type="CHANGEseq")
-    # regular_train_models(
-    #     models_options=tuple(("classifier", "regression_with_negatives")),
-    #     include_distance_feature_options=(True, False),
-    #     include_sequence_features_options=tuple((True,)),
-    #     k_fold_number=10, data_type="CHANGEseq")
 
 
 if __name__ == '__main__':

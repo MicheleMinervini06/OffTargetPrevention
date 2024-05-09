@@ -296,12 +296,12 @@ def main():
     # some testing examples. The models you are testing must be existed before
     # See regular_test_models, incremental_test_models_folds, and incremental_union_test_models_folds
     # to test other options.
-    regular_test_models(
-        models_options=tuple(("regression_without_negatives",)),
-        include_distance_feature_options=(True,),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, task="evaluation",
-        data_types=('CHANGEseq', 'GUIDEseq'))
+    # regular_test_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
     # regular_test_models(
     #     models_options=tuple(("classifier", "regression_with_negatives")),
     #     include_distance_feature_options=(True, False),
@@ -322,6 +322,27 @@ def main():
     #     include_sequence_features_options=(True,),
     #     k_fold_number=10, task="prediction",
     #     data_types=('CHANGEseq', 'GUIDEseq'))
+
+
+
+
+    # Read counts log transformation improves prediction performance
+
+    # Figure E/F: CHANGE-seq/Regression/Regression-seq-dist/log transformation
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # Figure E/F: CHANGE-seq/Regression/Regression-seq-dist/without log transformation
+    regular_test_models(
+        models_options=tuple(("regression_with_negatives",)),
+        include_distance_feature_options=(True,),
+        include_sequence_features_options=(True,),
+        trans_type="no_trans",
+        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'))
 
 
 if __name__ == '__main__':
