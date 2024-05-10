@@ -103,7 +103,7 @@ def load_model(model_type, k_fold_number, fold_index, gpu, trans_type, balanced,
 
     # speedup prediction using GPU
     if gpu:
-        model.set_params(**{'tree_method': 'gpu_hist'})
+        model.set_params(**{'device': 'cuda'})
 
     dir_path = extract_model_path(model_type, k_fold_number, include_distance_feature,
                                   include_sequence_features, balanced, trans_type, trans_all_fold,

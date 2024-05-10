@@ -481,11 +481,11 @@ def main():
     # Read counts log transformation improves prediction performance
 
     # Figure C/D/E/F: CHANGE-seq/Regression-seq-dist/log transformation
-    # regular_train_models(
-    #     models_options=tuple(("regression_with_negatives",)),
-    #     include_distance_feature_options=(True,),
-    #     include_sequence_features_options=(True,),
-    #     k_fold_number=10, data_type="CHANGEseq")
+    regular_train_models(
+        models_options=tuple(("regression_with_negatives",)),
+        include_distance_feature_options=(True,),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_type="CHANGEseq")
 
     # Figure C/D/E/F: CHANGE-seq/Regression-seq-dist/without log transformation
     regular_train_models(
@@ -494,6 +494,22 @@ def main():
         include_sequence_features_options=(True,),
         trans_type="no_trans",
         k_fold_number=10, data_type="CHANGEseq")
+
+    # # Including potential OTSs with no reads in regression model training improves prediction performance
+    #
+    # # Figure A/B/C/D: CHANGE-seq/Regression-seq-dist/with inactive sites
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+    #
+    # # Figure A/B/C/D: CHANGE-seq/Regression-seq-dist/without inactive sites
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
 
 
 if __name__ == '__main__':
