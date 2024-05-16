@@ -271,7 +271,7 @@ def transformer_generator(data, trans_type):
     data = data.reshape(-1, 1)
     if trans_type == "no_trans":
         # identity transformer
-        transformer = FunctionTransformer()
+        transformer = FunctionTransformer(validate=False)
     elif trans_type == "ln_x_plus_one_trans":
         transformer = FunctionTransformer(func=np.log1p, inverse_func=np.expm1)
     elif trans_type == "ln_x_plus_one_and_max_trans":

@@ -20,7 +20,8 @@ def regular_test_models(
         trans_type="ln_x_plus_one_trans", trans_all_fold=False,
         trans_only_positive=False, exclude_targets_without_positives=False,
         train_exclude_on_targets=False, test_exclude_on_targets=False, k_fold_number=10,
-        task="evaluation", data_types=('CHANGEseq', 'GUIDEseq'), intersection=None):
+        task="evaluation", data_types=('CHANGEseq', 'GUIDEseq'), intersection=None,
+        task_for_test=None):
     """
     Function for testing the models. The corresponding function to regular_train_models.
     This function produces results for the regression and classification models trained only on the CHANGE-seq dataset.
@@ -60,6 +61,7 @@ def regular_test_models(
         intersection dataset of GUIDE-seq and CHANGE-seq. works only with task="evaluation". Options:
         "CHANGE_GUIDE_intersection_by_both" or "CHANGE_GUIDE_intersection_by_GUIDE".
         See prepare_data file for description. Default: None
+    :param task_for_test: str. options: "classification" or "regression". Default: "classification"
     :return: None
     """
     if intersection is not None and task == "prediction":
@@ -112,7 +114,8 @@ def regular_test_models(
                                    "balanced": False, "trans_type": trans_type,
                                    "trans_all_fold": trans_all_fold,
                                    "trans_only_positive": trans_only_positive,
-                                   "exclude_targets_without_positives": exclude_targets_without_positives}
+                                   "exclude_targets_without_positives": exclude_targets_without_positives,
+                                   "task_for_test": task_for_test}
                     if task == "evaluation":
                         call_kwargs.update({"models_path_prefix": models_path_prefix,
                                             "results_path_prefix": evaluation_results_path_prefix})
@@ -327,31 +330,36 @@ def main():
 
 
 
+
+
     # Read counts log transformation improves prediction performance
 
-    # Figure C/D: CHANGE-seq/Classification/Regression-seq-dist/log transformation
-    regular_test_models(
-        models_options=tuple(("classifier",)),
-        include_distance_feature_options=(True,),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, task="evaluation",
-        data_types=('CHANGEseq', 'GUIDEseq'))
+    # # Figure C/D: CHANGE-seq/Classification/Regression-seq-dist/log transformation
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     task_for_test="classification",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
 
     # Figure C/D: CHANGE-seq/Classification/Regression-seq-dist/without log transformation
-    regular_test_models(
-        models_options=tuple(("classifier",)),
-        include_distance_feature_options=(True,),
-        include_sequence_features_options=(True,),
-        trans_type="no_trans", task="evaluation",
-        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'))
-
-    # Figure E/F: CHANGE-seq/Regression/Regression-seq-dist/log transformation
     regular_test_models(
         models_options=tuple(("regression_with_negatives",)),
         include_distance_feature_options=(True,),
         include_sequence_features_options=(True,),
         k_fold_number=10, task="evaluation",
+        trans_type="no_trans",
         data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # # Figure E/F: CHANGE-seq/Regression/Regression-seq-dist/log transformation
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     task_for_test="regression",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
 
     # Figure E/F: CHANGE-seq/Regression/Regression-seq-dist/without log transformation
     regular_test_models(
@@ -361,28 +369,24 @@ def main():
         trans_type="no_trans", task="evaluation",
         k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'))
 
+    # Including potential OTSs with no reads in regression model training improves prediction performance
 
-
-
-
-    # # Including potential OTSs with no reads in regression model training improves prediction performance
-    #
     # # Figure A/B: CHANGE-seq/Classification/Regression-seq-dist/log transformation/ with potential OTSs
     # regular_test_models(
-    #     models_options=tuple(("classifier",)),
+    #     models_options=tuple(("regression_with_negatives",)),
     #     include_distance_feature_options=(True,),
     #     include_sequence_features_options=(True,),
     #     k_fold_number=10, task="evaluation",
     #     data_types=('CHANGEseq', 'GUIDEseq'))
-    #
+
     # # Figure A/B: CHANGE-seq/Classification/Regression-seq-dist/log transformation/ without potential OTSs
     # regular_test_models(
-    #     models_options=tuple(("classifier",)),
+    #     models_options=tuple(("regression_without_negatives",)),
     #     include_distance_feature_options=(True,),
     #     include_sequence_features_options=(True,),
     #     k_fold_number=10, task="evaluation",
     #     data_types=('CHANGEseq', 'GUIDEseq'))
-    #
+
     # # Figure C/D: CHANGE-seq/Regression/Regression-seq-dist/log transformation/ with potential OTSs
     # regular_test_models(
     #     models_options=tuple(("regression_with_negatives",)),
@@ -398,6 +402,17 @@ def main():
     #     include_sequence_features_options=(True,),
     #     k_fold_number=10, task="evaluation",
     #     data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # The combination of sequence and distance
+    # features achieves the best prediction performance
+
+    # Figure A/B/C/D: Combination  of sequence and distance features on both classification and regression tasks
+    regular_test_models(
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True, False),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, task="evaluation",
+        data_types=('CHANGEseq', 'GUIDEseq'))
 
 
 if __name__ == '__main__':

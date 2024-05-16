@@ -323,7 +323,8 @@ def incremental_train_models_folds(models_options=("regression_with_negatives", 
                               include_distance_feature=True, include_sequence_features=True, balanced=False,
                               trans_type=trans_type, path_prefix=path_prefix,
                               xgb_model=xgb_model_path +
-                                        "classifier/classifier_xgb_model_fold_0_with_distance_without_Kfold_imbalanced.xgb"
+                                        "classifier"
+                                        "/classifier_xgb_model_fold_0_with_distance_without_Kfold_imbalanced.xgb"
                               if transfer_learning_type is not None else None,
                               transfer_learning_type=transfer_learning_type, **kwargs)
                     if "regression_with_negatives" in models_options:
@@ -478,25 +479,25 @@ def main():
     #     include_sequence_features_options=(True,),
     #     k_fold_number=10, data_type="CHANGEseq")
 
-    # Read counts log transformation improves prediction performance
-
-    # Figure C/D/E/F: CHANGE-seq/Regression-seq-dist/log transformation
-    regular_train_models(
-        models_options=tuple(("regression_with_negatives",)),
-        include_distance_feature_options=(True,),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, data_type="CHANGEseq")
-
-    # Figure C/D/E/F: CHANGE-seq/Regression-seq-dist/without log transformation
-    regular_train_models(
-        models_options=tuple(("regression_with_negatives",)),
-        include_distance_feature_options=(True,),
-        include_sequence_features_options=(True,),
-        trans_type="no_trans",
-        k_fold_number=10, data_type="CHANGEseq")
-
-    # # Including potential OTSs with no reads in regression model training improves prediction performance
+    # # Read counts log transformation improves prediction performance
     #
+    # # Figure C/D/E/F: CHANGE-seq/Regression-seq-dist/log transformation
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+    #
+    # # Figure C/D/E/F: CHANGE-seq/Regression-seq-dist/without log transformation
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     trans_type="no_trans",
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # Including potential OTSs with no reads in regression model training improves prediction performance
+
     # # Figure A/B/C/D: CHANGE-seq/Regression-seq-dist/with inactive sites
     # regular_train_models(
     #     models_options=tuple(("regression_with_negatives",)),
@@ -510,6 +511,16 @@ def main():
     #     include_distance_feature_options=(True,),
     #     include_sequence_features_options=(True,),
     #     k_fold_number=10, data_type="CHANGEseq")
+
+    # The combination of sequence and distance
+    # features achieves the best prediction performance
+
+    # Figure A/B/C/D: Combination  of sequence and distance features on both classification and regression tasks
+    regular_train_models(
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True, False),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_type="CHANGEseq")
 
 
 if __name__ == '__main__':
