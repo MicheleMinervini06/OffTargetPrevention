@@ -479,6 +479,8 @@ def main():
     #     include_sequence_features_options=(True,),
     #     k_fold_number=10, data_type="CHANGEseq")
 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     # # Read counts log transformation improves prediction performance
     #
     # # Figure C/D/E/F: CHANGE-seq/Regression-seq-dist/log transformation
@@ -496,6 +498,8 @@ def main():
     #     trans_type="no_trans",
     #     k_fold_number=10, data_type="CHANGEseq")
 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     # Including potential OTSs with no reads in regression model training improves prediction performance
 
     # # Figure A/B/C/D: CHANGE-seq/Regression-seq-dist/with inactive sites
@@ -512,14 +516,28 @@ def main():
     #     include_sequence_features_options=(True,),
     #     k_fold_number=10, data_type="CHANGEseq")
 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     # The combination of sequence and distance
     # features achieves the best prediction performance
 
-    # Figure A/B/C/D: Combination  of sequence and distance features on both classification and regression tasks
+    # # Figure A/B/C/D: Combination  of sequence and distance features on both classification and regression tasks
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Evaluating regression task performance of models trained with the distance feature only
+
+    # FIGURE A/B CHANGE-seq/Regression-dist/with distance feature
+    # Figure C Linear function compared with the function learned by the model for regression-dist
     regular_train_models(
-        models_options=tuple(("classifier", "regression_with_negatives")),
-        include_distance_feature_options=(True, False),
-        include_sequence_features_options=(True,),
+        models_options=tuple(("regression_with_negatives",)),
+        include_distance_feature_options=(True,),
+        include_sequence_features_options=(False,),
         k_fold_number=10, data_type="CHANGEseq")
 
 

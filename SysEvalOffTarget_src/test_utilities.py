@@ -379,8 +379,7 @@ def regression_evaluation(class_labels, predictions, predictions_inverse, read_l
 
 def compute_evaluation_scores(target, model_type, model_name, target_predictions_positive_df,
                               target_predictions_negative_df, predictions_df, trans_type, data_type,
-                              trans_only_positive, trans_by_all_targets, exclude_targets_without_positives,
-                              task_for_test=None):
+                              trans_only_positive, trans_by_all_targets, exclude_targets_without_positives):
     class_labels, positive_read_labels, _negative_read_labels, read_labels, \
         positive_read_labels_trans, _negative_read_labels_trans, read_labels_trans, \
         positive_predictions, _negative_predictions, predictions, \
@@ -390,24 +389,14 @@ def compute_evaluation_scores(target, model_type, model_name, target_predictions
                             trans_only_positive=trans_only_positive, trans_by_all_targets=trans_by_all_targets,
                             exclude_targets_without_positives=exclude_targets_without_positives)
 
-    # Added the variable task for test to allow for the evaluation of regression and classification
-    # models independently of the training task
-    if task_for_test == "classification":
+    if model_type == "classifier":
         target_scores = classification_evaluation(class_labels, predictions,
                                                   positive_read_labels, positive_predictions)
-    elif task_for_test == "regression":
+    else:
+        # regression model
         target_scores = regression_evaluation(class_labels, predictions, predictions_inverse, read_labels,
                                               read_labels_trans, positive_read_labels, positive_read_labels_trans,
                                               positive_predictions, positive_predictions_inverse)
-    else:
-        if model_type == "classifier":
-            target_scores = classification_evaluation(class_labels, predictions,
-                                                      positive_read_labels, positive_predictions)
-        else:
-            # regression model
-            target_scores = regression_evaluation(class_labels, predictions, predictions_inverse, read_labels,
-                                                  read_labels_trans, positive_read_labels, positive_read_labels_trans,
-                                                  positive_predictions, positive_predictions_inverse)
 
     target_scores.update({"target": target})
     target_scores.update(
@@ -423,7 +412,7 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                include_sequence_features=True, balanced=True, trans_type="ln_x_plus_one_trans",
                trans_all_fold=False, trans_only_positive=False, exclude_targets_without_positives=False,
                evaluate_only_distance=None, gpu=True, suffix_add="", models_path_prefix="",
-               results_path_prefix="", task_for_test=None):
+               results_path_prefix=""):
     """
     the test function
     """
@@ -461,7 +450,7 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
             target_scores = compute_evaluation_scores(target, model_type, model_name, target_predictions_positive_df,
                                                       target_predictions_negative_df, predictions_df, trans_type,
                                                       data_type, trans_only_positive, trans_all_fold,
-                                                      exclude_targets_without_positives, task_for_test)
+                                                      exclude_targets_without_positives)
         # write to result dataframe
         # Convert targets_scores dictionary to DataFrame
         target_scores_df = pd.DataFrame.from_dict(target_scores, orient='index', columns=['target']).T
@@ -476,7 +465,7 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
     all_targets_scores = compute_evaluation_scores(
         "All Targets", model_type, model_name, target_predictions_positive_df,
         target_predictions_negative_df, predictions_df, trans_type, data_type,
-        trans_only_positive, trans_all_fold, exclude_targets_without_positives, task_for_test)
+        trans_only_positive, trans_all_fold, exclude_targets_without_positives)
     # Using concat instead of append which is no more defined for a DataFrame
     # Transforming all_targets_scores dictionary to a dataframe
     target_scores_df = pd.DataFrame.from_dict(all_targets_scores, orient='index', columns=['target']).T
@@ -488,20 +477,19 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                                           trans_only_positive, exclude_targets_without_positives,
                                           evaluate_only_distance, suffix_add, results_path_prefix)
 
+    # if data_type == "CHANGEseq":
+    #     dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                 "/include_on_targets"
+    #                 "/regression_with_negatives/test_results_include_on_targets"
+    #                 "/CHANGEseq_only_distance.csv")
+    # else:
+    #     dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                 "/include_on_targets"
+    #                 "/regression_with_negatives/test_results_include_on_targets"
+    #                 "/GUIDEseq_only_distance.csv")
+
     Path(dir_path).parent.mkdir(parents=True, exist_ok=True)
     print(dir_path)
     results_df.to_csv(dir_path)
-
-    # filepath = Path(dir_path)
-    # filepath.parent.mkdir(parents=True, exist_ok=True)
-    #
-    # dir_path = dir_path.replace("/", "\\")
-    # dir_path = dir_path.replace("\\", "\\\\")
-    #
-    # # TODO: Rimuovere i print
-    # print("DIR PATH: ", dir_path)
-    # print("FILE PATH: ", filepath)
-    #
-    # results_df.to_csv("C:\Users\mikim\PycharmProjects\OffTargetPrevention\files\models_10fold\CHANGEseq\include_on_targets\regression_with_negatives\test_results_include_on_targets\CHANGEseq_regression_with_negatives_results_xgb_model_all_10_folds_with_distance_imbalanced_no_trans.csv")
 
     return results_df
