@@ -109,8 +109,8 @@ def bar_plot(csv_info, task, title):
             # Remove inactive off-targets with reads <= 100
             if 'CHANGEseq_reads' in df.columns:
                 df = df[df['CHANGEseq_reads'] > 100]
-            else:
-                df = df[df['GUIDEseq_reads'] > 100]
+            # else:
+            #     df = df[df['GUIDEseq_reads'] > 100]
 
             # transformer = transformer_generator(np.where(df['CHANGEseq_reads'] > 100, 1, 0), "ln_x_plus_one_trans")
             # transform(df['distance'], transformer, inverse=True)
@@ -187,7 +187,6 @@ def bar_plot(csv_info, task, title):
 
 
 def linear_regression_plot(csv1):
-
     df1 = pd.read_csv(csv1)
 
     # Apply inverse transformation to the 'Regression-dist' column
@@ -226,6 +225,59 @@ def linear_regression_plot(csv1):
     plt.plot(grouped_means.index, grouped_means.values, 'o--',
              color='b')  # 'o--' denotes dotted line with circle markers
     plt.show()
+
+
+# def test(csv1, title, xlabel, ylabel, metric, task):
+#     """
+#     Generates a scatter plot comparing two metrics from two CSV files.
+#
+#     Parameters:
+#     - csv1, csv2: Paths to the CSV files.
+#     - title: Plot title.
+#     - xlabel, ylabel: Labels for the x and y axes.
+#     - metric: Column name for the metric to plot.
+#     - task: Type of task, affects axis scales ('classification' or 'regression').
+#     """
+#     df1 = load_data(csv1, metric)
+#     dfChange = load_data("files/datasets/CHANGE-seq.xlsx", metric)
+#     dfGuide = load_data("files/datasets/GUIDE-seq.xlsx", metric)
+#
+#     # Extract the metrics values and exclude the last row (ALL TARGETS)
+#     X = df1[metric].iloc[:-1]  # All rows except the last one from df1
+#     Y = df2[metric].iloc[:-1]  # All rows except the last one from df2
+#
+#     # Calculate statistics
+#     stats = {
+#         'mean_1': X.mean(), 'median_1': X.median(),
+#         'mean_2': Y.mean(), 'median_2': Y.median()
+#     }
+#
+#     plt.figure(figsize=(8, 6))
+#     # Using log-plus-one transformation to the color scale in order to avoid error if zeros are present
+#     sp = plt.scatter(X, Y, c=np.log(df1['positives'].iloc[:-1] + 1), cmap='viridis', alpha=0.5)
+#     plt.plot([-1, 1], [-1, 1], 'k--')  # Dotted line from (-1, -1) to (1, 1)
+#
+#     cbar = plt.colorbar(sp)
+#     cbar.set_label('log(positives + 1)')
+#
+#     plt.title(title)
+#     plt.legend([
+#         f'Pearson\n'
+#         f'X - Mean: {stats["mean_1"]:.3f}, Median: {stats["median_1"]:.3f}\n'
+#         f'Y - Mean: {stats["mean_2"]:.3f}, Median: {stats["median_2"]:.3f}'
+#     ], loc='best')
+#     plt.xlabel(f"X - {xlabel}")
+#     plt.ylabel(f"Y - {ylabel}")
+#
+#     if task == "classification":
+#         plt.xlim(0, 1)
+#         plt.ylim(0, 1)
+#     else:
+#         plt.xlim(-1, 1)
+#         plt.ylim(-1, 1)
+#
+#     plt.grid(False)
+#     plt.show()
 
 
 def main():
@@ -335,6 +387,28 @@ def main():
     #              metric="pearson_only_positives_after_inv_trans",
     #              task="regression")
 
+    scatter_plot("files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                 "/test_results_include_on_targets"
+                 "/CHANGEseq_regression_with_negatives_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
+                 "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                 "/test_results_include_on_targets/CHANGEseq_OneHot.csv",
+                 xlabel="Regression-seq-dist with original encoding",
+                 ylabel="Regression-seq-dist with one-hot encoding",
+                 metric="pearson_only_positives_after_inv_trans",
+                 title="CHANGE-seq: Regression task",
+                 task="classification")
+
+    scatter_plot("files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                 "/test_results_include_on_targets"
+                 "/GUIDEseq_regression_with_negatives_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
+                 "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                 "/test_results_include_on_targets/GUIDEseq_OneHot.csv",
+                 xlabel="Regression-seq-dist with original encoding",
+                 ylabel="Regression-seq-dist with one-hot encoding",
+                 metric="pearson_only_positives_after_inv_trans",
+                 title="CHANGE-seq: Regression task",
+                 task="classification")
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     # The combination of sequence and distance features achieves the best prediction performance
@@ -437,10 +511,67 @@ def main():
     # ]
     # bar_plot(csv_info_d, task="regression", title="GUIDE-seq: Regression task")
 
+    # # ONE HOT REGRESSION
+    # csv_info_d = [
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+    #                 "/GUIDEseq_classifier_results_xgb_model_all_10_folds_imbalanced.csv",
+    #         'column': 'pearson_reads_to_proba_for_positive_set', 'label': labels[0]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+    #                 "/GUIDEseq_classifier_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
+    #         'column': 'pearson_reads_to_proba_for_positive_set', 'label': labels[1]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+    #                 "/test_results_include_on_targets"
+    #                 "/GUIDEseq_regression_with_negatives_results_xgb_model_all_10_folds_imbalanced.csv",
+    #         'column': 'pearson_only_positives_after_inv_trans', 'label': labels[2]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+    #                 "/test_results_include_on_targets"
+    #                 "/GUIDEseq_regression_with_negatives_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
+    #         'column': 'pearson_only_positives_after_inv_trans', 'label': labels[3]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+    #                 "/test_results_include_on_targets/GUIDEseq_OneHot.csv",
+    #         'column': 'pearson_only_positives_after_inv_trans', 'label': 'Regression-seq-dist-one-hot'
+    #     }
+    # ]
+    # bar_plot(csv_info_d, task="regression", title="GUIDE-seq: Regression task")
+    #
+    # # ONE HOT CLASSIFICATION
+    # # B - GUIDE-seq: Classification task
+    # csv_info_b = [
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+    #                 "/GUIDEseq_classifier_results_xgb_model_all_10_folds_imbalanced.csv",
+    #         'column': 'aupr', 'label': labels[0]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+    #                 "/GUIDEseq_classifier_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
+    #         'column': 'aupr', 'label': labels[1]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+    #                 "/test_results_include_on_targets"
+    #                 "/GUIDEseq_regression_with_negatives_results_xgb_model_all_10_folds_imbalanced.csv",
+    #         'column': 'reg_to_class_aupr', 'label': labels[2]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+    #                 "/test_results_include_on_targets"
+    #                 "/GUIDEseq_regression_with_negatives_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
+    #         'column': 'reg_to_class_aupr', 'label': labels[3]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+    #                 "/test_results_include_on_targets/GUIDEseq_OneHot.csv",
+    #         'column': 'reg_to_class_aupr', 'label': 'Regression-seq-dist-one-hot'
+    #     }
+    # ]
+    # bar_plot(csv_info_b, task="classification", title="GUIDE-seq: Classification task")
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # Evaluating regression task performance of models trained with the distance feature only
-
+    # # Evaluating regression task performance of models trained with the distance feature only
+    #
     # # A - CHANGE-seq: Regression task
     # csv_info_a = [
     #     {
@@ -476,10 +607,102 @@ def main():
     # ]
     #
     # bar_plot(csv_info_b, task="regression", title="GUIDE-seq: Regression task")
+    #
+    # # C - Linear regression plot to compare a linear model vs the regression-dist
+    # linear_regression_plot("files/models_10_fold/CHANGEseq/include_on_targets/predictions_include_on_targets"
+    #                        "/CHANGEseq_results_all_10_folds.csv")
 
-    # C - Linear regression plot to compare a linear model vs the regression-dist
-    linear_regression_plot("files/models_10_fold/CHANGEseq/include_on_targets/predictions_include_on_targets"
-                           "/CHANGEseq_results_all_10_folds.csv")
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Evaluating different model trained using On Hot Encoding
+
+    # Labels for the boxplot
+    labels = ['Classification-seq-OneHot', 'Classification-seq-dist-OneHot', 'Regression-seq-OneHot', 'Regression-seq'
+                                                                                                      '-dist-OneHot']
+
+    # A - CHANGE-seq: Classification task
+    csv_info_a = [
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/CHANGEseq_OneHot.csv",
+            'column': 'aupr', 'label': labels[0]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/CHANGEseq_distance_OneHot.csv",
+            'column': 'aupr', 'label': labels[1]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/CHANGEseq_OneHot.csv",
+            'column': 'reg_to_class_aupr', 'label': labels[2]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/CHANGEseq_distance_OneHot.csv",
+            'column': 'reg_to_class_aupr', 'label': labels[3]}
+    ]
+    bar_plot(csv_info_a, task="classification", title="CHANGE-seq: Classification task")
+
+    # B - GUIDE-seq: Classification task
+    csv_info_b = [
+        {
+            'path': "files/models_10fold/GUIDEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/GUIDEseq_OneHot.csv",
+            'column': 'aupr', 'label': labels[0]},
+        {
+            'path': "files/models_10fold/GUIDEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/GUIDEseq_distance_OneHot.csv",
+            'column': 'aupr', 'label': labels[1]},
+        {
+            'path': "files/models_10fold/GUIDEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/GUIDEseq_OneHot.csv",
+            'column': 'reg_to_class_aupr', 'label': labels[2]},
+        {
+            'path': "files/models_10fold/GUIDEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/GUIDEseq_distance_OneHot.csv",
+            'column': 'reg_to_class_aupr', 'label': labels[3]}
+    ]
+    bar_plot(csv_info_b, task="classification", title="GUIDE-seq: Classification task")
+
+    # C - CHANGE-seq: Regression task
+    csv_info_c = [
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/CHANGEseq_OneHot.csv",
+            'column': 'pearson_reads_to_proba_for_positive_set', 'label': labels[0]},
+        {
+            'path': "files/models_10fold/GUIDEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/GUIDEseq_distance_OneHot.csv",
+            'column': 'pearson_reads_to_proba_for_positive_set', 'label': labels[1]},
+        {
+            'path': "files/models_10fold/GUIDEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/GUIDEseq_OneHot.csv",
+            'column': 'pearson_only_positives_after_inv_trans', 'label': labels[2]},
+        {
+            'path': "files/models_10fold/GUIDEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/GUIDEseq_distance_OneHot.csv",
+            'column': 'pearson_only_positives_after_inv_trans', 'label': labels[3]}
+    ]
+    bar_plot(csv_info_c, task="regression", title="CHANGE-seq: Regression task")
+
+    # D - GUIDE-seq: Regression task
+    csv_info_d = [
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/CHANGEseq_OneHot.csv",
+            'column': 'pearson_reads_to_proba_for_positive_set', 'label': labels[0]},
+        {
+            'path': "files/models_10fold/GUIDEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/GUIDEseq_distance_OneHot.csv",
+            'column': 'pearson_reads_to_proba_for_positive_set', 'label': labels[1]},
+        {
+            'path': "files/models_10fold/GUIDEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/GUIDEseq_OneHot.csv",
+            'column': 'pearson_only_positives_after_inv_trans', 'label': labels[2]},
+        {
+            'path': "files/models_10fold/GUIDEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/GUIDEseq_distance_OneHot.csv",
+            'column': 'pearson_only_positives_after_inv_trans', 'label': labels[3]}
+    ]
+    bar_plot(csv_info_d, task="regression", title="GUIDE-seq: Regression task")
 
 
 if __name__ == '__main__':

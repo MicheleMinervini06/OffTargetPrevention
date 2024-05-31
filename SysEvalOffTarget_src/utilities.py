@@ -19,7 +19,7 @@ def load_order_sg_rnas(data_type='CHANGE'):
     """
     data_type = 'CHANGE' if data_type.lower() in ('changeseq', 'change-seq', 'change_seq') else data_type
     data_type = 'GUIDE' if data_type.lower() in ('guideseq', 'guide-seq', 'guide_seq') else data_type
-    sg_rnas_s = pd.read_csv(general_utilities.DATASETS_PATH+data_type+'-seq_sgRNAs_ordering.csv', header=None)
+    sg_rnas_s = pd.read_csv(general_utilities.DATASETS_PATH + data_type + '-seq_sgRNAs_ordering.csv', header=None)
     # Modificata la conversione del dataframe in lista
     return sg_rnas_s.iloc[:, 0].tolist()
 
@@ -43,7 +43,7 @@ def order_sg_rnas(data_type='CHANGE'):
     sg_rnas_s = pd.Series(sg_rnas)
     # to csv - you can read this to Series using -
     # pd.read_csv("file_name.csv", header=None, squeeze=True)
-    sg_rnas_s.to_csv(general_utilities.DATASETS_PATH+data_type+'-seq_sgRNAs_ordering.csv',
+    sg_rnas_s.to_csv(general_utilities.DATASETS_PATH + data_type + '-seq_sgRNAs_ordering.csv',
                      header=False, index=False)
 
     return sg_rnas
@@ -84,43 +84,86 @@ def create_nucleotides_to_position_mapping():
 
 def build_sequence_features(dataset_df, nucleotides_to_position_mapping,
                             include_distance_feature=False,
-                            include_sequence_features=True):
-    """
-    Build sequence features using the nucleotides to position mapping
-    """
-    if (not include_distance_feature) and (not include_sequence_features):
-        raise ValueError(
-            'include_distance_feature and include_sequence_features can not be both False')
+                            include_sequence_features=True,
+                            encoding="NPM"):
+    if encoding == "NPM":
+        """
+        Build sequence features using the nucleotides to position mapping
+        """
+        if (not include_distance_feature) and (not include_sequence_features):
+            raise ValueError(
+                'include_distance_feature and include_sequence_features can not be both False')
 
-    # convert dataset_df["target"] -3 position to 'N'
-    print("Converting the [-3] positions in each sgRNA sequence to 'N'")
-    dataset_df.loc[:, 'target'] = dataset_df['target'].apply(lambda s: s[:-3] + 'N' + s[-2:])
+        # convert dataset_df["target"] -3 position to 'N'
+        print("Converting the [-3] positions in each sgRNA sequence to 'N'")
+        dataset_df.loc[:, 'target'] = dataset_df['target'].apply(lambda s: s[:-3] + 'N' + s[-2:])
 
-    if include_sequence_features:
-        final_result = np.zeros((len(dataset_df), (23*16)+1),
-                                dtype=np.int8) if include_distance_feature else \
-            np.zeros((len(dataset_df), 23*16), dtype=np.int8)
-    else:
-        final_result = np.zeros((len(dataset_df), 1), dtype=np.int8)
-    for i, (seq1, seq2) in enumerate(zip(dataset_df["target"], dataset_df["offtarget_sequence"])):
         if include_sequence_features:
-            intersection_matrices = np.zeros((23, 4, 4), dtype=np.int8)
-            for j in range(23):
-                matrix_positions = nucleotides_to_position_mapping[(
-                    seq1[j], seq2[j])]
-                intersection_matrices[j, matrix_positions[0],
-                                      matrix_positions[1]] = 1
+            final_result = np.zeros((len(dataset_df), (23 * 16) + 1),
+                                    dtype=np.int8) if include_distance_feature else \
+                np.zeros((len(dataset_df), 23 * 16), dtype=np.int8)
         else:
-            intersection_matrices = None
-
-        if include_distance_feature:
+            final_result = np.zeros((len(dataset_df), 1), dtype=np.int8)
+        for i, (seq1, seq2) in enumerate(zip(dataset_df["target"], dataset_df["offtarget_sequence"])):
             if include_sequence_features:
-                final_result[i, :-1] = intersection_matrices.flatten()
-            final_result[i, -1] = dataset_df["distance"].iloc[i]
-        else:
-            final_result[i, :] = intersection_matrices.flatten()
+                intersection_matrices = np.zeros((23, 4, 4), dtype=np.int8)
+                for j in range(23):
+                    matrix_positions = nucleotides_to_position_mapping[(
+                        seq1[j], seq2[j])]
+                    intersection_matrices[j, matrix_positions[0],
+                    matrix_positions[1]] = 1
+            else:
+                intersection_matrices = None
 
-    return final_result
+            if include_distance_feature:
+                if include_sequence_features:
+                    final_result[i, :-1] = intersection_matrices.flatten()
+                final_result[i, -1] = dataset_df["distance"].iloc[i]
+            else:
+                final_result[i, :] = intersection_matrices.flatten()
+
+        return final_result
+
+    if 'OneHot':
+        # Define the mapping from nucleotides to one-hot encoding using a numpy array for direct indexing
+        nucleotide_mapping = np.array([[1, 0, 0, 0],  # A
+                                       [0, 1, 0, 0],  # C
+                                       [0, 0, 1, 0],  # G
+                                       [0, 0, 0, 1],  # T
+                                       [0, 0, 0, 0]])  # N
+
+        # Create a mapper from nucleotide characters to indices [A, C, G, T, N]
+        char_to_index = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4}
+
+        # Function to convert sequence string to index array
+        def sequence_to_index_array(sequence):
+            if sequence is None:
+                return np.array([], dtype=int)
+            return np.array([char_to_index.get(nuc, 4) for nuc in sequence], dtype=int)
+
+        # Convert sequences to indices
+        target_indices = dataset_df['target'].apply(sequence_to_index_array)
+        offtarget_indices = dataset_df['offtarget_sequence'].apply(sequence_to_index_array)
+
+        # Convert indices to one-hot encoded form
+        target_encoded = np.array([nucleotide_mapping[indices] for indices in target_indices])
+        offtarget_encoded = np.array([nucleotide_mapping[indices] for indices in offtarget_indices])
+
+        # Perform a logical OR operation
+        or_result = np.logical_or(target_encoded, offtarget_encoded).astype(int)
+
+        # Flatten the results and optionally include the distance feature
+        if include_distance_feature:
+            flattened_results = np.hstack([or_result.reshape(or_result.shape[0], -1),
+                                           dataset_df['distance'].values[:, np.newaxis]])
+        else:
+            flattened_results = or_result.reshape(or_result.shape[0], -1)
+
+        # Convert the results into a NumPy array with dtype set for memory efficiency
+        final_result = np.array(flattened_results, dtype=np.int8)
+
+        return final_result
+
 
 ##########################################################################
 
@@ -152,8 +195,8 @@ def create_fold_sets(target_fold, targets, positive_df, negative_df,
             if target in test_targets:
                 continue
             negative_indices_train = negative_indices_train + \
-                list(negative_df[(negative_df['target'] == target)].sample(
-                    n=len(positive_df_train[(positive_df_train['target'] == target)])).index)
+                                     list(negative_df[(negative_df['target'] == target)].sample(
+                                         n=len(positive_df_train[(positive_df_train['target'] == target)])).index)
         negative_df_train = negative_df.loc[negative_indices_train]
 
         # obtain the negative samples for test (for test take all negatives not in the trains set)
@@ -185,6 +228,8 @@ def build_sampleweight(y_values):
         vec[y_values == values_class] = np.sum(
             y_values != values_class) / len(y_values)
     return vec
+
+
 ##########################################################################
 
 
@@ -208,18 +253,21 @@ def extract_model_name(model_type, include_distance_feature, include_sequence_fe
         model_name += "-balanced" if balanced else ""
         model_name += "-foldTrans" if trans_all_fold else ""
         model_name += "-positiveTrans" if trans_only_positive else ""
-    
+
     return model_name
+
+
 ##########################################################################
 
 
 def prefix_and_suffix_path(model_type, k_fold_number, include_distance_feature, include_sequence_features, balanced,
                            trans_type, trans_all_fold, trans_only_positive, exclude_targets_without_positives,
-                           path_prefix):
+                           path_prefix, encoding="NPM"):
     suffix = "_with_distance" if include_distance_feature else ""
     suffix += "" if include_sequence_features else "_without_sequence_features"
     suffix += ("_without_Kfold" if k_fold_number == 1 else "")
     suffix += ("" if balanced == 1 else "_imbalanced")
+    suffix += "_with_OneHotEncoding" if encoding == "OneHot" else ""
     if trans_type != "ln_x_plus_one_trans" and model_type != "classifier":
         suffix += "_" + trans_type
     path_prefix = "trans_only_positive/" + path_prefix if trans_only_positive else path_prefix
@@ -231,36 +279,41 @@ def prefix_and_suffix_path(model_type, k_fold_number, include_distance_feature, 
 
 def extract_model_path(model_type, k_fold_number, include_distance_feature, include_sequence_features,
                        balanced, trans_type, trans_all_fold, trans_only_positive, exclude_targets_without_positives,
-                       fold_index, path_prefix):
+                       fold_index, path_prefix, encoding="NPM"):
     """
     extract model path
     """
     path_prefix, suffix = prefix_and_suffix_path(model_type, k_fold_number, include_distance_feature,
                                                  include_sequence_features, balanced, trans_type, trans_all_fold,
-                                                 trans_only_positive, exclude_targets_without_positives, path_prefix)
+                                                 trans_only_positive, exclude_targets_without_positives, path_prefix,
+                                                 encoding)
     dir_path = general_utilities.FILES_DIR + "models_" + \
-        str(k_fold_number) + "fold/" + path_prefix + model_type + \
-        "_xgb_model_fold_" + str(fold_index) + suffix + ".json"
+               str(k_fold_number) + "fold/" + path_prefix + model_type + \
+               "_xgb_model_fold_" + str(fold_index) + suffix + ".json"
 
     return dir_path
 
 
 def extract_model_results_path(model_type, data_type, k_fold_number, include_distance_feature,
                                include_sequence_features, balanced, trans_type, trans_all_fold, trans_only_positive,
-                               exclude_targets_without_positives, evaluate_only_distance, suffix_add, path_prefix):
+                               exclude_targets_without_positives, evaluate_only_distance, suffix_add, path_prefix,
+                               encoding):
     """
     extract model results path
     """
     path_prefix, suffix = prefix_and_suffix_path(model_type, k_fold_number, include_distance_feature,
                                                  include_sequence_features, balanced, trans_type, trans_all_fold,
-                                                 trans_only_positive, exclude_targets_without_positives, path_prefix)
+                                                 trans_only_positive, exclude_targets_without_positives, path_prefix,
+                                                 encoding)
     suffix = suffix + ("" if evaluate_only_distance is None else "_distance_" + str(evaluate_only_distance))
     suffix = suffix + suffix_add
-    dir_path = general_utilities.FILES_DIR + "models_" + str(k_fold_number) +\
-        "fold/" + path_prefix + data_type + "_" + model_type +\
-        "_results_xgb_model_all_" + str(k_fold_number) + "_folds" + suffix + ".csv"
+    dir_path = general_utilities.FILES_DIR + "models_" + str(k_fold_number) + \
+               "fold/" + path_prefix + data_type + "_" + model_type + \
+               "_results_xgb_model_all_" + str(k_fold_number) + "_folds" + suffix + ".csv"
 
     return dir_path
+
+
 ##########################################################################
 
 

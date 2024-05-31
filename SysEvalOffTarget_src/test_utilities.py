@@ -92,7 +92,7 @@ def load_fold_dataset(data_type, target_fold, targets, positive_df, negative_df,
 
 def load_model(model_type, k_fold_number, fold_index, gpu, trans_type, balanced,
                include_distance_feature, include_sequence_features, path_prefix,
-               trans_all_fold, trans_only_positive, exclude_targets_without_positives):
+               trans_all_fold, trans_only_positive, exclude_targets_without_positives, encoding):
     """
     load model
     """
@@ -108,7 +108,7 @@ def load_model(model_type, k_fold_number, fold_index, gpu, trans_type, balanced,
     dir_path = extract_model_path(model_type, k_fold_number, include_distance_feature,
                                   include_sequence_features, balanced, trans_type, trans_all_fold,
                                   trans_only_positive, exclude_targets_without_positives,
-                                  fold_index, path_prefix)
+                                  fold_index, path_prefix, encoding)
     model.load_model(dir_path)
 
     return model
@@ -120,7 +120,8 @@ def model_folds_predictions(positive_df, negative_df, targets, nucleotides_to_po
                             balanced=True, trans_type="ln_x_plus_one_trans", trans_all_fold=False,
                             trans_only_positive=False, exclude_targets_without_positives=False,
                             evaluate_only_distance=None, add_to_results_table=False,
-                            results_table_path=None, gpu=True, suffix_add="", path_prefix="", save_results=False):
+                            results_table_path=None, gpu=True, suffix_add="", path_prefix="", save_results=False,
+                            encoding="NPM"):
     """
     split targets to fold (if needed) and make predictions
     assumption: if results_table_path is not None, then it has the same format and order as
@@ -152,14 +153,15 @@ def model_folds_predictions(positive_df, negative_df, targets, nucleotides_to_po
                                                                exclude_targets_without_positives=False)
         model = load_model(model_type, k_fold_number, i, gpu, trans_type, balanced,
                            include_distance_feature, include_sequence_features, path_prefix,
-                           trans_all_fold, trans_only_positive, exclude_targets_without_positives)
+                           trans_all_fold, trans_only_positive, exclude_targets_without_positives, encoding=encoding)
         # predict and insert the predictions into the predictions dfs
 
         for j, dataset_df in enumerate((positive_df_test, negative_df_test)):
 
             sequence_features_test = build_sequence_features(dataset_df, nucleotides_to_position_mapping,
                                                              include_distance_feature=include_distance_feature,
-                                                             include_sequence_features=include_sequence_features)
+                                                             include_sequence_features=include_sequence_features,
+                                                             encoding=encoding)
             # TODO: Verificare se anche questa porzione di codice deve essere modificata
             if model_type == "classifier":
                 predictions = model.predict_proba(sequence_features_test)[:, 1]
@@ -412,7 +414,7 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                include_sequence_features=True, balanced=True, trans_type="ln_x_plus_one_trans",
                trans_all_fold=False, trans_only_positive=False, exclude_targets_without_positives=False,
                evaluate_only_distance=None, gpu=True, suffix_add="", models_path_prefix="",
-               results_path_prefix=""):
+               results_path_prefix="", encoding="NPM"):
     """
     the test function
     """
@@ -433,7 +435,7 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                                 exclude_targets_without_positives=exclude_targets_without_positives,
                                 evaluate_only_distance=evaluate_only_distance,
                                 add_to_results_table=True, results_table_path=None, gpu=gpu, save_results=False,
-                                path_prefix=models_path_prefix)
+                                path_prefix=models_path_prefix, encoding=encoding)
 
     print("Targets:", targets)
 
@@ -475,18 +477,50 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
     dir_path = extract_model_results_path(model_type, data_type, k_fold_number, include_distance_feature,
                                           include_sequence_features, balanced, trans_type, trans_all_fold,
                                           trans_only_positive, exclude_targets_without_positives,
-                                          evaluate_only_distance, suffix_add, results_path_prefix)
+                                          evaluate_only_distance, suffix_add, results_path_prefix, encoding)
 
     # if data_type == "CHANGEseq":
-    #     dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
-    #                 "/include_on_targets"
-    #                 "/regression_with_negatives/test_results_include_on_targets"
-    #                 "/CHANGEseq_only_distance.csv")
+    #     if model_type == "regression_with_negatives" and include_distance_feature:
+    #         dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                     "/include_on_targets"
+    #                     "/regression_with_negatives/test_results_include_on_targets"
+    #                     "/CHANGEseq_distance_OneHot.csv")
+    #     if model_type == "regression_with_negatives" and not include_distance_feature:
+    #         dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                     "/include_on_targets"
+    #                     "/regression_with_negatives/test_results_include_on_targets"
+    #                     "/CHANGEseq_OneHot.csv")
+    #     if model_type == "classifier" and include_distance_feature:
+    #         dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                     "/include_on_targets"
+    #                     "/classifier/test_results_include_on_targets"
+    #                     "/CHANGEseq_distance_OneHot.csv")
+    #     if model_type == "classifier" and not include_distance_feature:
+    #         dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                     "/include_on_targets"
+    #                     "/classifier/test_results_include_on_targets"
+    #                     "/CHANGEseq_OneHot.csv")
     # else:
-    #     dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
-    #                 "/include_on_targets"
-    #                 "/regression_with_negatives/test_results_include_on_targets"
-    #                 "/GUIDEseq_only_distance.csv")
+    #     if model_type == "regression_with_negatives" and include_distance_feature:
+    #         dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/GUIDEseq"
+    #                     "/include_on_targets"
+    #                     "/regression_with_negatives/test_results_include_on_targets"
+    #                     "/GUIDEseq_distance_OneHot.csv")
+    #     if model_type == "regression_with_negatives" and not include_distance_feature:
+    #         dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/GUIDEseq"
+    #                     "/include_on_targets"
+    #                     "/regression_with_negatives/test_results_include_on_targets"
+    #                     "/GUIDEseq_OneHot.csv")
+    #     if model_type == "classifier" and include_distance_feature:
+    #         dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/GUIDEseq"
+    #                     "/include_on_targets"
+    #                     "/classifier/test_results_include_on_targets"
+    #                     "/GUIDEseq_distance_OneHot.csv")
+    #     if model_type == "classifier" and not include_distance_feature:
+    #         dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/GUIDEseq"
+    #                     "/include_on_targets"
+    #                     "/classifier/test_results_include_on_targets"
+    #                     "/GUIDEseq_OneHot.csv")
 
     Path(dir_path).parent.mkdir(parents=True, exist_ok=True)
     print(dir_path)

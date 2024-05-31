@@ -47,6 +47,8 @@ def data_preprocessing(positive_df, negative_df, trans_type, data_type, trans_al
             target_df = labels_df[labels_df["target"] == target]
             target_labels = target_df[reads_col].values
             transformer = transformer_generator(target_labels, trans_type)
+            # Change the DataFrame column type to float if necessary
+            labels_df[reads_col] = labels_df[reads_col].astype(float)
             labels_df.loc[labels_df["target"] == target, reads_col] = transform(target_labels, transformer)
 
     if trans_only_positive:
@@ -65,7 +67,8 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
           include_distance_feature=False, include_sequence_features=True,
           balanced=False, trans_type="ln_x_plus_one_trans", trans_all_fold=False,
           trans_only_positive=False, exclude_targets_without_positives=False, skip_num_folds=0,
-          path_prefix="", xgb_model=None, transfer_learning_type="add", save_model=True, n_trees=1000):
+          path_prefix="", xgb_model=None, transfer_learning_type="add", save_model=True, n_trees=1000,
+          encoding="NPM"):
     """
     The train function
     """
@@ -88,6 +91,8 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
     target_folds_list = np.array_split(
         targets, k_fold_number) if k_fold_number > 1 else [[]]
 
+    # Start timing
+    start_time = time.time()
     for i, target_fold in enumerate(target_folds_list[skip_num_folds:]):
         negative_df_train, positive_df_train, _, _ = create_fold_sets(
             target_fold, targets, positive_df, negative_df, balanced,
@@ -96,12 +101,12 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
         positive_sequence_features_train = build_sequence_features(
             positive_df_train, nucleotides_to_position_mapping,
             include_distance_feature=include_distance_feature,
-            include_sequence_features=include_sequence_features)
+            include_sequence_features=include_sequence_features, encoding=encoding)
         if model_type in ("classifier", "regression_with_negatives"):
             negative_sequence_features_train = build_sequence_features(
                 negative_df_train, nucleotides_to_position_mapping,
                 include_distance_feature=include_distance_feature,
-                include_sequence_features=include_sequence_features)
+                include_sequence_features=include_sequence_features, encoding=encoding)
             sequence_features_train = np.concatenate(
                 (negative_sequence_features_train, positive_sequence_features_train))
         elif model_type == 'regression_without_negatives':
@@ -183,12 +188,19 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
             dir_path = extract_model_path(model_type, k_fold_number, include_distance_feature,
                                           include_sequence_features, balanced, trans_type, trans_all_fold,
                                           trans_only_positive, exclude_targets_without_positives,
-                                          i + skip_num_folds, path_prefix)
+                                          i + skip_num_folds, path_prefix, encoding)
             Path(dir_path).parent.mkdir(parents=True, exist_ok=True)
             # Changed format to avoid warning
             print(dir_path)
             model.save_model(dir_path)
         models.append(model)
+
+    # End timing
+    end_time = time.time()
+
+    # Calculate elapsed time in minutes
+    elapsed_time = (end_time - start_time) / 60
+    print(f"Training completed in {elapsed_time:.2f} minutes.")
 
     if k_fold_number == 1:
         return models[0]

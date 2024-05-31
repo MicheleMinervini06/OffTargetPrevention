@@ -20,7 +20,8 @@ def regular_test_models(
         trans_type="ln_x_plus_one_trans", trans_all_fold=False,
         trans_only_positive=False, exclude_targets_without_positives=False,
         train_exclude_on_targets=False, test_exclude_on_targets=False, k_fold_number=10,
-        task="evaluation", data_types=('CHANGEseq', 'GUIDEseq'), intersection=None):
+        task="evaluation", data_types=('CHANGEseq', 'GUIDEseq'), intersection=None,
+        encoding="NPM"):
     """
     Function for testing the models. The corresponding function to regular_train_models.
     This function produces results for the regression and classification models trained only on the CHANGE-seq dataset.
@@ -60,6 +61,7 @@ def regular_test_models(
         intersection dataset of GUIDE-seq and CHANGE-seq. works only with task="evaluation". Options:
         "CHANGE_GUIDE_intersection_by_both" or "CHANGE_GUIDE_intersection_by_GUIDE".
         See prepare_data file for description. Default: None
+    :param encoding: str. encoding type. Options: "NPM" or "OneHot". Default: "NPM"
     :return: None
     """
     if intersection is not None and task == "prediction":
@@ -112,7 +114,8 @@ def regular_test_models(
                                    "balanced": False, "trans_type": trans_type,
                                    "trans_all_fold": trans_all_fold,
                                    "trans_only_positive": trans_only_positive,
-                                   "exclude_targets_without_positives": exclude_targets_without_positives}
+                                   "exclude_targets_without_positives": exclude_targets_without_positives,
+                                   "encoding": encoding}
                     if task == "evaluation":
                         call_kwargs.update({"models_path_prefix": models_path_prefix,
                                             "results_path_prefix": evaluation_results_path_prefix})
@@ -122,7 +125,8 @@ def regular_test_models(
                     elif task == "prediction":
                         call_kwargs.update({"add_to_results_table": True,
                                             "results_table_path": prediction_results_path,
-                                            "save_results": True, "path_prefix": models_path_prefix})
+                                            "save_results": True, "path_prefix": models_path_prefix,
+                                            "encoding": encoding})
                         model_folds_predictions(*call_args, **call_kwargs)
                     else:
                         raise ValueError("Invalid task argument value")
@@ -420,13 +424,32 @@ def main():
     #     include_sequence_features_options=(False,),
     #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'))
 
-    # Figure C Linear function compared with the function learned by the model for regression-dist
+    # # Figure C Linear function compared with the function learned by the model for regression-dist
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(False,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     task="prediction")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # # Evaluating the performance of models trained with One Hot encoding
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="OneHot")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Trying to improve the prediction performance of GUIDEseq regression-seq-dist using hyperparameter tuning
     regular_test_models(
         models_options=tuple(("regression_with_negatives",)),
         include_distance_feature_options=(True,),
-        include_sequence_features_options=(False,),
-        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
-        task="prediction")
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_types=('GUIDEseq',))
 
 
 if __name__ == '__main__':
