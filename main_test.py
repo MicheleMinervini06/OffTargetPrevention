@@ -11,6 +11,7 @@ from SysEvalOffTarget_src.test_utilities import evaluation, model_folds_predicti
 from SysEvalOffTarget_src.utilities import create_nucleotides_to_position_mapping, order_sg_rnas, load_order_sg_rnas
 from SysEvalOffTarget_src import general_utilities
 
+
 random.seed(general_utilities.SEED)
 
 
@@ -444,12 +445,21 @@ def main():
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # Trying to improve the prediction performance of GUIDEseq regression-seq-dist using hyperparameter tuning
+    # # Trying to improve the prediction performance of GUIDEseq regression-seq-dist using hyperparameter tuning
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('GUIDEseq',))
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Testing the Decision Tree model on the CHANGE-seq and GUIDE-seq dataset
     regular_test_models(
         models_options=tuple(("regression_with_negatives",)),
         include_distance_feature_options=(True,),
         include_sequence_features_options=(True,),
-        k_fold_number=10, data_types=('GUIDEseq',))
+        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'))
 
 
 if __name__ == '__main__':

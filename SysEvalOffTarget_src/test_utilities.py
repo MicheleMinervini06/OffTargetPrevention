@@ -15,6 +15,8 @@ from SysEvalOffTarget_src.utilities import create_fold_sets, build_sequence_feat
     extract_model_results_path, transformer_generator, transform
 from SysEvalOffTarget_src import general_utilities
 
+import joblib
+
 random.seed(general_utilities.SEED)
 
 
@@ -109,6 +111,7 @@ def load_model(model_type, k_fold_number, fold_index, gpu, trans_type, balanced,
                                   include_sequence_features, balanced, trans_type, trans_all_fold,
                                   trans_only_positive, exclude_targets_without_positives,
                                   fold_index, path_prefix, encoding)
+    # dir_path = dir_path.replace(".json", "_tuned.json")
     model.load_model(dir_path)
 
     return model
@@ -154,6 +157,7 @@ def model_folds_predictions(positive_df, negative_df, targets, nucleotides_to_po
         model = load_model(model_type, k_fold_number, i, gpu, trans_type, balanced,
                            include_distance_feature, include_sequence_features, path_prefix,
                            trans_all_fold, trans_only_positive, exclude_targets_without_positives, encoding=encoding)
+        model = joblib.load(f"decision_tree_{i}_model.pkl")
         # predict and insert the predictions into the predictions dfs
 
         for j, dataset_df in enumerate((positive_df_test, negative_df_test)):
@@ -478,6 +482,23 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                                           include_sequence_features, balanced, trans_type, trans_all_fold,
                                           trans_only_positive, exclude_targets_without_positives,
                                           evaluate_only_distance, suffix_add, results_path_prefix, encoding)
+    dir_path = dir_path.replace(".csv", "_tuned.csv")
+
+    dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+                "/include_on_targets"
+                "/regression_with_negatives_decisionTree/test_results_include_on_targets"
+                "/GUIDEseq_regression_with_negatives_tuned_decisionTree.csv")
+
+    # if data_type == "CHANGEseq":
+    #     dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                 "/include_on_targets"
+    #                 "/regression_with_negatives/test_results_include_on_targets"
+    #                 "/CHANGEseq_tuned_test.csv")
+    # else:
+    #     dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                 "/include_on_targets"
+    #                 "/regression_with_negatives/test_results_include_on_targets"
+    #                 "/GUIDEseq_tuned_test.csv")
 
     # if data_type == "CHANGEseq":
     #     if model_type == "regression_with_negatives" and include_distance_feature:

@@ -552,12 +552,28 @@ def main():
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # Trying to improve the prediction performance of GUIDEseq regression-seq-dist using hyperparameter tuning
+    # # Trying to improve the prediction performance of GUIDEseq regression-seq-dist using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="GUIDEseq")
+
+    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Training the model using a decision tree
     regular_train_models(
         models_options=tuple(("regression_with_negatives",)),
         include_distance_feature_options=(True,),
         include_sequence_features_options=(True,),
-        k_fold_number=10, data_type="GUIDEseq")
+        k_fold_number=10, data_type="CHANGEseq")
 
 
 if __name__ == '__main__':
