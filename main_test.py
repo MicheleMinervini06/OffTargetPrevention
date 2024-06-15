@@ -454,12 +454,22 @@ def main():
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # Testing the Decision Tree model on the CHANGE-seq and GUIDE-seq dataset
+    # # Testing the Decision Tree model on the CHANGE-seq and GUIDE-seq dataset
+    # regular_test_models(
+    #     models_options=tuple(("classifier",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Evaluating the performance of models trained with One Hot encoding
     regular_test_models(
-        models_options=tuple(("regression_with_negatives",)),
-        include_distance_feature_options=(True,),
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True, False),
         include_sequence_features_options=(True,),
-        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'))
+        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+        encoding="OneHot5Channel")
 
 
 if __name__ == '__main__':

@@ -917,54 +917,223 @@ def main():
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # Evaluating the performance of the regression-seq-dist model trained on CHANGE-SEQ using a Decision Tree
+    # # Evaluating the performance of the regression-seq-dist model trained on CHANGE-SEQ using a Decision Tree
+    # # A - CHANGE-seq: Classification task
+    # scatter_plot("files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives_decisionTree"
+    #              "/test_results_include_on_targets/CHANGEseq_regression_with_negatives_tuned_decisionTree.csv",
+    #              "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+    #              "/test_results_include_on_targets"
+    #              "/CHANGEseq_regression_with_negatives_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
+    #              title="CHANGE-seq: Classification task",
+    #              xlabel="Regression-seq-dist Decision Tree",
+    #              ylabel="Regression-seq-dist XGBOOST",
+    #              metric="reg_to_class_aupr",
+    #              task="classification")
+    #
+    # # B - GUIDE-seq: Classification task
+    # scatter_plot("files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives_decisionTree"
+    #              "/test_results_include_on_targets/GUIDEseq_regression_with_negatives_tuned_decisionTree.csv",
+    #              "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+    #              "/test_results_include_on_targets"
+    #              "/GUIDEseq_regression_with_negatives_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
+    #              title="GUIDE-seq: Classification task",
+    #              xlabel="Regression-seq-dist Decision Tree",
+    #              ylabel="Regression-seq-dist XGBOOST",
+    #              metric="reg_to_class_aupr",
+    #              task="classification")
+    #
+    # # C - CHANGE-seq: Regression task
+    # scatter_plot("files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives_decisionTree"
+    #              "/test_results_include_on_targets/CHANGEseq_regression_with_negatives_tuned_decisionTree.csv",
+    #              "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+    #              "/test_results_include_on_targets"
+    #              "/CHANGEseq_regression_with_negatives_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
+    #              title="CHANGE-seq: Regression task",
+    #              xlabel="Regression-seq-dist Decision Tree",
+    #              ylabel="Regression-seq-dist XGBOOST",
+    #              metric="pearson_only_positives_after_inv_trans",
+    #              task="regression")
+    #
+    # # D - GUIDE-seq: Regression task
+    # scatter_plot("files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives_decisionTree"
+    #              "/test_results_include_on_targets/GUIDEseq_regression_with_negatives_tuned_decisionTree.csv",
+    #              "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+    #              "/test_results_include_on_targets"
+    #              "/GUIDEseq_regression_with_negatives_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
+    #              title="GUIDE-seq: Regression task",
+    #              xlabel="Regression-seq-dist Decision Tree",
+    #              ylabel="Regression-seq-dist XGBOOST",
+    #              metric="pearson_only_positives_after_inv_trans",
+    #              task="regression")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # # Comparing model trained on regression with negatives, regression without negatives and classifier using a
+    # # Decision Tree
+    #
+    # # Labels for the boxplot
+    # labels = ['Classification-seq-dist', 'Regression-seq-dist without negatives', 'Regression-seq-dist with negatives']
+    #
+    # # A - CHANGE-seq: Classification task
+    # csv_info_a = [
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier_decisionTree"
+    #                 "/test_results_include_on_targets/CHANGEseq_classifier_tuned_decisionTree.csv",
+    #         'column': 'aupr', 'label': labels[0]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_without_negatives_decisionTree"
+    #                 "/test_results_include_on_targets/CHANGEseq_regression_without_negatives_tuned_decisionTree.csv",
+    #         'column': 'reg_to_class_aupr', 'label': labels[1]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives_decisionTree"
+    #                 "/test_results_include_on_targets/CHANGEseq_regression_with_negatives_tuned_decisionTree.csv",
+    #         'column': 'reg_to_class_aupr', 'label': labels[2]}
+    # ]
+    # bar_plot(csv_info_a, task="classification", title="CHANGE-seq: Classification task")
+    #
+    # # B - GUIDE-seq: Classification task
+    # csv_info_b = [
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier_decisionTree"
+    #                 "/test_results_include_on_targets/GUIDEseq_classifier_tuned_decisionTree.csv",
+    #         'column': 'aupr', 'label': labels[0]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_without_negatives_decisionTree"
+    #                 "/test_results_include_on_targets/GUIDEseq_regression_without_negatives_tuned_decisionTree.csv",
+    #         'column': 'reg_to_class_aupr', 'label': labels[1]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives_decisionTree"
+    #                 "/test_results_include_on_targets/GUIDEseq_regression_with_negatives_tuned_decisionTree.csv",
+    #         'column': 'reg_to_class_aupr', 'label': labels[2]}
+    # ]
+    # bar_plot(csv_info_b, task="classification", title="GUIDE-seq: Classification task")
+    #
+    # # C - CHANGE-seq: Regression task
+    # csv_info_c = [
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier_decisionTree"
+    #                 "/test_results_include_on_targets/CHANGEseq_classifier_tuned_decisionTree.csv",
+    #         'column': 'pearson_reads_to_proba_for_positive_set', 'label': labels[0]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_without_negatives_decisionTree"
+    #                 "/test_results_include_on_targets/CHANGEseq_regression_without_negatives_tuned_decisionTree.csv",
+    #         'column': 'pearson_only_positives_after_inv_trans', 'label': labels[1]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives_decisionTree"
+    #                 "/test_results_include_on_targets/CHANGEseq_regression_with_negatives_tuned_decisionTree.csv",
+    #         'column': 'pearson_only_positives_after_inv_trans', 'label': labels[2]}
+    # ]
+    # bar_plot(csv_info_c, task="regression", title="CHANGE-seq: Regression task")
+    #
+    # # D - GUIDE-seq: Regression task
+    # csv_info_d = [
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier_decisionTree"
+    #                 "/test_results_include_on_targets/GUIDEseq_classifier_tuned_decisionTree.csv",
+    #         'column': 'pearson_reads_to_proba_for_positive_set', 'label': labels[0]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_without_negatives_decisionTree"
+    #                 "/test_results_include_on_targets/GUIDEseq_regression_without_negatives_tuned_decisionTree.csv",
+    #         'column': 'pearson_only_positives_after_inv_trans', 'label': labels[1]},
+    #     {
+    #         'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives_decisionTree"
+    #                 "/test_results_include_on_targets/GUIDEseq_regression_with_negatives_tuned_decisionTree.csv",
+    #         'column': 'pearson_only_positives_after_inv_trans', 'label': labels[2]}
+    # ]
+    # bar_plot(csv_info_d, task="regression", title="GUIDE-seq: Regression task")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Evaluating different model trained using 5 channel On Hot Encoding
+
+    # Labels for the boxplot
+    labels = ['Classification-seq-OneHot-5Channel', 'Classification-seq-dist-One-Hot5Channel', 'Regression-seq-OneHot'
+                                                                                               '-5Channel',
+              'Regression-seq-dist-OneHot-5Channel']
+
     # A - CHANGE-seq: Classification task
-    scatter_plot("files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives_decisionTree"
-                 "/test_results_include_on_targets/CHANGEseq_regression_with_negatives_tuned_decisionTree.csv",
-                 "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
-                 "/test_results_include_on_targets"
-                 "/CHANGEseq_regression_with_negatives_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
-                 title="CHANGE-seq: Classification task",
-                 xlabel="Regression-seq-dist Decision Tree",
-                 ylabel="Regression-seq-dist XGBOOST",
-                 metric="reg_to_class_aupr",
-                 task="classification")
+    csv_info_a = [
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/CHANGEseq_classifier_results_xgb_model_all_10_folds_imbalanced_with_OneHotEncoding5Channel.csv",
+            'column': 'aupr', 'label': labels[0]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/CHANGEseq_classifier_results_xgb_model_all_10_folds_with_distance_imbalanced_with_OneHotEncoding5Channel.csv",
+            'column': 'aupr', 'label': labels[1]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/CHANGEseq_with_OneHotEncoding5Channel.csv",
+            'column': 'reg_to_class_aupr', 'label': labels[2]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/CHANGEseq_with_distance_with_OneHotEncoding5Channel.csv",
+            'column': 'reg_to_class_aupr', 'label': labels[3]}
+    ]
+    bar_plot(csv_info_a, task="classification", title="CHANGE-seq: Classification task")
 
     # B - GUIDE-seq: Classification task
-    scatter_plot("files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives_decisionTree"
-                 "/test_results_include_on_targets/GUIDEseq_regression_with_negatives_tuned_decisionTree.csv",
-                 "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
-                 "/test_results_include_on_targets"
-                 "/GUIDEseq_regression_with_negatives_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
-                 title="GUIDE-seq: Classification task",
-                 xlabel="Regression-seq-dist Decision Tree",
-                 ylabel="Regression-seq-dist XGBOOST",
-                 metric="reg_to_class_aupr",
-                 task="classification")
+    csv_info_b = [
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/GUIDEseq_classifier_results_xgb_model_all_10_folds_imbalanced_with_OneHotEncoding5Channel.csv",
+            'column': 'aupr', 'label': labels[0]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/GUIDEseq_classifier_results_xgb_model_all_10_folds_with_distance_imbalanced_with_OneHotEncoding5Channel.csv",
+            'column': 'aupr', 'label': labels[1]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/GUIDEseq_with_OneHotEncoding5Channel.csv",
+            'column': 'reg_to_class_aupr', 'label': labels[2]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/GUIDEseq_with_distance_with_OneHotEncoding5Channel.csv",
+            'column': 'reg_to_class_aupr', 'label': labels[3]}
+    ]
+    bar_plot(csv_info_b, task="classification", title="GUIDE-seq: Classification task")
 
     # C - CHANGE-seq: Regression task
-    scatter_plot("files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives_decisionTree"
-                 "/test_results_include_on_targets/CHANGEseq_regression_with_negatives_tuned_decisionTree.csv",
-                 "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
-                 "/test_results_include_on_targets"
-                 "/CHANGEseq_regression_with_negatives_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
-                 title="CHANGE-seq: Regression task",
-                 xlabel="Regression-seq-dist Decision Tree",
-                 ylabel="Regression-seq-dist XGBOOST",
-                 metric="pearson_only_positives_after_inv_trans",
-                 task="regression")
+    csv_info_c = [
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/CHANGEseq_classifier_results_xgb_model_all_10_folds_imbalanced_with_OneHotEncoding5Channel.csv",
+            'column': 'pearson_reads_to_proba_for_positive_set', 'label': labels[0]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/CHANGEseq_classifier_results_xgb_model_all_10_folds_with_distance_imbalanced_with_OneHotEncoding5Channel.csv",
+            'column': 'pearson_reads_to_proba_for_positive_set', 'label': labels[1]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/CHANGEseq_with_OneHotEncoding5Channel.csv",
+            'column': 'pearson_only_positives_after_inv_trans', 'label': labels[2]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/CHANGEseq_with_distance_with_OneHotEncoding5Channel.csv",
+            'column': 'pearson_only_positives_after_inv_trans', 'label': labels[3]}
+    ]
+    bar_plot(csv_info_c, task="regression", title="CHANGE-seq: Regression task")
 
     # D - GUIDE-seq: Regression task
-    scatter_plot("files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives_decisionTree"
-                 "/test_results_include_on_targets/GUIDEseq_regression_with_negatives_tuned_decisionTree.csv",
-                 "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
-                 "/test_results_include_on_targets"
-                 "/GUIDEseq_regression_with_negatives_results_xgb_model_all_10_folds_with_distance_imbalanced.csv",
-                 title="GUIDE-seq: Regression task",
-                 xlabel="Regression-seq-dist Decision Tree",
-                 ylabel="Regression-seq-dist XGBOOST",
-                 metric="pearson_only_positives_after_inv_trans",
-                 task="regression")
+    csv_info_d = [
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/GUIDEseq_classifier_results_xgb_model_all_10_folds_imbalanced_with_OneHotEncoding5Channel.csv",
+            'column': 'pearson_reads_to_proba_for_positive_set', 'label': labels[0]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/classifier/test_results_include_on_targets"
+                    "/GUIDEseq_classifier_results_xgb_model_all_10_folds_with_distance_imbalanced_with_OneHotEncoding5Channel.csv",
+            'column': 'pearson_reads_to_proba_for_positive_set', 'label': labels[1]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/GUIDEseq_with_OneHotEncoding5Channel.csv",
+            'column': 'pearson_only_positives_after_inv_trans', 'label': labels[2]},
+        {
+            'path': "files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+                    "/test_results_include_on_targets/GUIDEseq_with_distance_with_OneHotEncoding5Channel.csv",
+            'column': 'pearson_only_positives_after_inv_trans', 'label': labels[3]}
+    ]
+    bar_plot(csv_info_d, task="regression", title="GUIDE-seq: Regression task")
 
 
 if __name__ == '__main__':

@@ -124,13 +124,13 @@ def build_sequence_features(dataset_df, nucleotides_to_position_mapping,
 
         return final_result
 
-    if 'OneHot':
+    if encoding == 'OneHot' or encoding == 'OneHot5Channel':
         # Define the mapping from nucleotides to one-hot encoding using a numpy array for direct indexing
-        nucleotide_mapping = np.array([[1, 0, 0, 0],  # A
-                                       [0, 1, 0, 0],  # C
-                                       [0, 0, 1, 0],  # G
-                                       [0, 0, 0, 1],  # T
-                                       [0, 0, 0, 0]])  # N
+        nucleotide_mapping = np.array([[1, 0, 0, 0],  # A 0
+                                       [0, 1, 0, 0],  # C 1
+                                       [0, 0, 1, 0],  # G 2
+                                       [0, 0, 0, 1],  # T 3
+                                       [0, 0, 0, 0]])  # N 4
 
         # Create a mapper from nucleotide characters to indices [A, C, G, T, N]
         char_to_index = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4}
@@ -151,6 +151,25 @@ def build_sequence_features(dataset_df, nucleotides_to_position_mapping,
 
         # Perform a logical OR operation
         or_result = np.logical_or(target_encoded, offtarget_encoded).astype(int)
+
+        if encoding == 'OneHot5Channel':
+            # Determine the direction for each position
+            direction_indicators = []
+            for t_idx, o_idx in zip(target_indices, offtarget_indices):
+                direction_indicator = np.zeros((len(t_idx), 1), dtype=int)  # 5th position for the direction
+                for i, (t, o) in enumerate(zip(t_idx, o_idx)):
+                    if t != 4 and o != 4:  # Ignore 'N' characters
+                        if t <= o:  # If they match
+                            # Determine the order of the nucleotides
+                            direction_indicator[i, 0] = 0
+                        else:
+                            direction_indicator[i, 0] = 1
+                direction_indicators.append(direction_indicator)
+
+            direction_indicators = np.array(direction_indicators)
+
+            # Append the direction indicators to the OR result
+            or_result = np.concatenate((or_result, direction_indicators), axis=-1)
 
         # Flatten the results and optionally include the distance feature
         if include_distance_feature:
@@ -267,7 +286,10 @@ def prefix_and_suffix_path(model_type, k_fold_number, include_distance_feature, 
     suffix += "" if include_sequence_features else "_without_sequence_features"
     suffix += ("_without_Kfold" if k_fold_number == 1 else "")
     suffix += ("" if balanced == 1 else "_imbalanced")
-    suffix += "_with_OneHotEncoding" if encoding == "OneHot" else ""
+    if encoding == "OneHot":
+        suffix += "_with_OneHotEncoding"
+    elif encoding == "OneHot5Channel":
+        suffix += "_with_OneHotEncoding5Channel"
     if trans_type != "ln_x_plus_one_trans" and model_type != "classifier":
         suffix += "_" + trans_type
     path_prefix = "trans_only_positive/" + path_prefix if trans_only_positive else path_prefix

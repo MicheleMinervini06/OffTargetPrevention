@@ -3,19 +3,18 @@ test utilities
 """
 import random
 from pathlib import Path
-import xgboost as xgb
-import pandas as pd
-import numpy as np
-
-from scipy.stats import pearsonr, spearmanr
-from sklearn.metrics import average_precision_score, precision_score, recall_score, roc_auc_score
-from SysEvalOffTarget_src import utilities
-
-from SysEvalOffTarget_src.utilities import create_fold_sets, build_sequence_features, extract_model_path, \
-    extract_model_results_path, transformer_generator, transform
-from SysEvalOffTarget_src import general_utilities
 
 import joblib
+import numpy as np
+import pandas as pd
+import xgboost as xgb
+from scipy.stats import pearsonr, spearmanr
+from sklearn.metrics import average_precision_score, precision_score, recall_score, roc_auc_score
+
+from SysEvalOffTarget_src import general_utilities
+from SysEvalOffTarget_src import utilities
+from SysEvalOffTarget_src.utilities import create_fold_sets, build_sequence_features, extract_model_path, \
+    extract_model_results_path, transformer_generator, transform
 
 random.seed(general_utilities.SEED)
 
@@ -124,7 +123,7 @@ def model_folds_predictions(positive_df, negative_df, targets, nucleotides_to_po
                             trans_only_positive=False, exclude_targets_without_positives=False,
                             evaluate_only_distance=None, add_to_results_table=False,
                             results_table_path=None, gpu=True, suffix_add="", path_prefix="", save_results=False,
-                            encoding="NPM"):
+                            encoding="NPM", use_xgboost=False):
     """
     split targets to fold (if needed) and make predictions
     assumption: if results_table_path is not None, then it has the same format and order as
@@ -154,12 +153,21 @@ def model_folds_predictions(positive_df, negative_df, targets, nucleotides_to_po
                                                                negative_df, balanced=False,
                                                                evaluate_only_distance=evaluate_only_distance,
                                                                exclude_targets_without_positives=False)
-        model = load_model(model_type, k_fold_number, i, gpu, trans_type, balanced,
-                           include_distance_feature, include_sequence_features, path_prefix,
-                           trans_all_fold, trans_only_positive, exclude_targets_without_positives, encoding=encoding)
-        model = joblib.load(f"decision_tree_{i}_model.pkl")
-        # predict and insert the predictions into the predictions dfs
 
+        if use_xgboost:
+            model = load_model(model_type, k_fold_number, i, gpu, trans_type, balanced,
+                               include_distance_feature, include_sequence_features, path_prefix,
+                               trans_all_fold, trans_only_positive, exclude_targets_without_positives,
+                               encoding=encoding)
+        else:
+            if model_type == "classifier":
+                model = joblib.load(f'decision_tree_{i}_classifier.pkl')
+            elif model_type == "regression_with_negatives":
+                model = joblib.load(f'decision_tree_{i}_regression_with_negatives.pkl')
+            else:
+                model = joblib.load(f'decision_tree_{i}_regression_without_negatives.pkl')
+
+        # predict and insert the predictions into the predictions dfs
         for j, dataset_df in enumerate((positive_df_test, negative_df_test)):
 
             sequence_features_test = build_sequence_features(dataset_df, nucleotides_to_position_mapping,
@@ -418,7 +426,7 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                include_sequence_features=True, balanced=True, trans_type="ln_x_plus_one_trans",
                trans_all_fold=False, trans_only_positive=False, exclude_targets_without_positives=False,
                evaluate_only_distance=None, gpu=True, suffix_add="", models_path_prefix="",
-               results_path_prefix="", encoding="NPM"):
+               results_path_prefix="", encoding="NPM", use_xgboost=True):
     """
     the test function
     """
@@ -439,7 +447,7 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                                 exclude_targets_without_positives=exclude_targets_without_positives,
                                 evaluate_only_distance=evaluate_only_distance,
                                 add_to_results_table=True, results_table_path=None, gpu=gpu, save_results=False,
-                                path_prefix=models_path_prefix, encoding=encoding)
+                                path_prefix=models_path_prefix, encoding=encoding, use_xgboost=use_xgboost)
 
     print("Targets:", targets)
 
@@ -482,23 +490,29 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                                           include_sequence_features, balanced, trans_type, trans_all_fold,
                                           trans_only_positive, exclude_targets_without_positives,
                                           evaluate_only_distance, suffix_add, results_path_prefix, encoding)
-    dir_path = dir_path.replace(".csv", "_tuned.csv")
+    # dir_path = dir_path.replace(".csv", "_tuned.csv")
 
-    dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
-                "/include_on_targets"
-                "/regression_with_negatives_decisionTree/test_results_include_on_targets"
-                "/GUIDEseq_regression_with_negatives_tuned_decisionTree.csv")
+    # if data_type == "CHANGEseq":
+    #     dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                 "/include_on_targets"
+    #                 "/classifier_decisionTree/test_results_include_on_targets"
+    #                 "/CHANGEseq_classifier_tuned_decisionTree.csv")
+    # else:
+    #     dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                 "/include_on_targets"
+    #                 "/classifier_decisionTree/test_results_include_on_targets"
+    #                 "/GUIDEseq_classifier_tuned_decisionTree.csv")
 
     # if data_type == "CHANGEseq":
     #     dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
     #                 "/include_on_targets"
     #                 "/regression_with_negatives/test_results_include_on_targets"
-    #                 "/CHANGEseq_tuned_test.csv")
+    #                 "/CHANGEseq_with_OneHotEncoding5Channel.csv")
     # else:
     #     dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
     #                 "/include_on_targets"
     #                 "/regression_with_negatives/test_results_include_on_targets"
-    #                 "/GUIDEseq_tuned_test.csv")
+    #                 "/GUIDEseq_with_OneHotEncoding5Channel.csv")
 
     # if data_type == "CHANGEseq":
     #     if model_type == "regression_with_negatives" and include_distance_feature:

@@ -1,12 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.inspection import PartialDependenceDisplay, partial_dependence
+import shap
 from PyALE import ale
+from sklearn.inspection import partial_dependence
 
-from xgboost import XGBRegressor, XGBClassifier
-
-from SysEvalOffTarget_src import utilities, general_utilities
+from SysEvalOffTarget_src import general_utilities
 from SysEvalOffTarget_src.test_utilities import load_model, load_fold_dataset
 from SysEvalOffTarget_src.utilities import load_order_sg_rnas, order_sg_rnas, build_sequence_features, \
     create_nucleotides_to_position_mapping
@@ -205,5 +204,127 @@ def ALE(model_type="classifier", include_distance_feature=True, include_sequence
         print("No models found. Please ensure the 'models' list is not empty.")
 
 
+def SHAP_explain(model_type="classifier", include_distance_feature=True, include_sequence_features=True, balanced=False,
+                 trans_type="ln_x_plus_one_trans", trans_all_fold=False, trans_only_positive=False,
+                 exclude_targets_without_positives=False, k_fold_number=10, gpu=True, encoding='NPM',
+                 data_type="GUIDEseq", single_grna=None):
+    # Feature index for the SHAP explanation
+    all_shap_values = []
+    all_data_samples = []
+
+    # Feature names as the nucleotide position
+    feature = [int(i / 23) for i in range(368)]
+    # mapping
+    feature_names = [str(i + 1) for i in feature]
+    feature_names.append("Distance")
+
+    # Defining prefix to load the model
+    path_prefix = 'CHANGEseq/include_on_targets/' + model_type + "/"
+
+    # Loading the targets (i.e. sgRNAs)
+    try:
+        targets = load_order_sg_rnas()
+    except FileNotFoundError:
+        targets = order_sg_rnas()
+
+    # Loading the dataset
+    datasets_dir_path = general_utilities.DATASETS_PATH
+    datasets_dir_path += 'include_on_targets/'
+    positive_df = pd.read_csv(datasets_dir_path + '{}_positive.csv'.format(data_type), index_col=0)
+    negative_df = pd.read_csv(datasets_dir_path + '{}_negative.csv'.format(data_type), index_col=0)
+    negative_df = negative_df[negative_df["offtarget_sequence"].str.find('N') == -1]  # Remove invalid sequences
+
+    nucleotides_to_position_mapping = create_nucleotides_to_position_mapping()
+
+    target_folds_list = np.array_split(targets, k_fold_number)
+
+    for i, target_fold in enumerate(target_folds_list):
+        if single_grna is None:
+            negative_df_test, positive_df_test = load_fold_dataset(data_type, target_fold, targets, positive_df,
+                                                                   negative_df, balanced=False,
+                                                                   evaluate_only_distance=None,
+                                                                   exclude_targets_without_positives=False)
+        elif single_grna in target_fold:
+            positive_df_test = positive_df[positive_df["target"] == single_grna]
+            negative_df_test = negative_df[negative_df["target"] == single_grna]
+        else:
+            continue  # Skip if the target is not in the current fold
+
+        model = load_model(model_type, k_fold_number, i, gpu, trans_type, balanced,
+                           include_distance_feature, include_sequence_features, path_prefix,
+                           trans_all_fold, trans_only_positive, exclude_targets_without_positives, encoding=encoding)
+
+        for j, dataset_df in enumerate((positive_df_test, negative_df_test)):
+            # Build sequence features for the positive test dataset
+            sequence_features_test = build_sequence_features(dataset_df, nucleotides_to_position_mapping,
+                                                             include_distance_feature=include_distance_feature,
+                                                             include_sequence_features=include_sequence_features,
+                                                             encoding=encoding)
+
+            shap_values, data_sample = compute_shap_values(model, sequence_features_test, 1000)
+            all_shap_values.append(shap_values)
+            all_data_samples.append(data_sample)
+
+            dataset = "positive" if j == 0 else "negative"
+            print(f"Computed SHAP values for {dataset} subset {i + 1}")
+    # Combine the SHAP values and data samples
+    combined_shap_values = np.vstack(all_shap_values)
+    combined_data_samples = np.vstack(all_data_samples)
+
+    # Plot summary plot for combined SHAP values
+    shap.summary_plot(combined_shap_values, combined_data_samples, feature_names=feature_names)
+
+    return combined_shap_values
+
+
+def compute_shap_values(model, data, sample_size=100):
+    """
+    Compute SHAP values for a subset of the data.
+
+    Parameters:
+    - model: Trained XGBoost model.
+    - data: numpy.ndarray containing the genomic data with 368 features.
+    - sample_size: Number of samples to use for SHAP computation.
+
+    Returns:
+    - shap_values: SHAP values computed for the input data.
+    - data_sample: The subset of the data used for SHAP computation.
+    """
+    # Use a subset of the data if it's too large
+    # data_sample = sample_numpy_array(data, sample_size)
+
+    # Create a SHAP explainer for the XGBoost model
+    explainer = shap.TreeExplainer(model)
+
+    # Compute SHAP values
+    shap_values = explainer.shap_values(data)
+
+    return shap_values, data
+
+
+def sample_numpy_array(data, sample_size):
+    """
+    Sample a subset from a numpy.ndarray.
+
+    Parameters:
+    - data: numpy.ndarray, the original array to sample from.
+    - sample_size: int, the number of samples to draw.
+
+    Returns:
+    - sampled_data: numpy.ndarray, the sampled subset of the original array.
+    """
+    # Ensure the sample size is not greater than the number of rows in the array
+    if sample_size > data.shape[0]:
+        raise ValueError("Sample size cannot be greater than the number of rows in the array.")
+
+    # Generate random indices
+    indices = np.random.choice(data.shape[0], size=sample_size, replace=False)
+
+    # Select the subset using the indices
+    sampled_data = data[indices, :]
+
+    return sampled_data
+
+
 if __name__ == '__main__':
-    ALE(model_type="regression_with_negatives")
+    SHAP_explain(model_type="regression_with_negatives", single_grna="GTCACCAATCCTGTCCCTAGNGG")

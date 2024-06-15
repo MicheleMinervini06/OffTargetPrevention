@@ -548,6 +548,14 @@ def main():
     #     include_distance_feature_options=(True, False),
     #     include_sequence_features_options=(True,),
     #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="NPM")
+
+    # # Training of Regression-seq, Regression-seq-dist, and Classification-seq, Classification-seq-dist models
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
     #     encoding="OneHot")
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -568,12 +576,22 @@ def main():
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # Training the model using a decision tree
+    # # Training the model using a decision tree
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives", "classifier", "regression_without_negatives")),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Training of Classification-seq-dist and Regression-seq-dist using onehot 5 channel encoding
     regular_train_models(
-        models_options=tuple(("regression_with_negatives",)),
-        include_distance_feature_options=(True,),
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True, False),
         include_sequence_features_options=(True,),
-        k_fold_number=10, data_type="CHANGEseq")
+        k_fold_number=10, data_type="CHANGEseq",
+        encoding="OneHot5Channel")
 
 
 if __name__ == '__main__':
