@@ -124,6 +124,44 @@ def build_sequence_features(dataset_df, nucleotides_to_position_mapping,
 
         return final_result
 
+    """Including the k-mer encoding"""
+    if encoding == "kmer":
+        def get_kmers(sequence, k):
+            """Convert a sequence into a list of overlapping k-mers"""
+            return [sequence[i:i + k] for i in range(len(sequence) - k + 1)]
+
+        def compare_kmers(kmers1, kmers2):
+            """Compare two k-mer lists and return a binary vector representing match/mismatch"""
+            binary_encoding = []
+            for kmer1, kmer2 in zip(kmers1, kmers2):
+                binary_kmer = ''.join(['1' if nuc1 == nuc2 else '0' for nuc1, nuc2 in zip(kmer1, kmer2)])
+                binary_encoding.append(binary_kmer)
+            return ''.join(binary_encoding)
+
+        k = 3  # k-mer length
+        if include_sequence_features:
+            final_result = np.zeros((len(dataset_df), (23 - k + 1) * k), dtype=np.int8)
+        else:
+            final_result = np.zeros((len(dataset_df), 1), dtype=np.int8)
+
+        for i, (seq1, seq2) in enumerate(zip(dataset_df["target"], dataset_df["offtarget_sequence"])):
+            kmers_seq1 = get_kmers(seq1, k)
+            kmers_seq2 = get_kmers(seq2, k)
+            binary_encoding = compare_kmers(kmers_seq1, kmers_seq2)
+
+            # Convert the binary encoding string to a list of integers
+            encoded_array = np.array([int(b) for b in binary_encoding], dtype=np.int8)
+
+            if include_sequence_features:
+                final_result[i, :len(encoded_array)] = encoded_array
+            else:
+                final_result[i, :] = encoded_array
+
+            if include_distance_feature:
+                final_result[i, -1] = dataset_df["distance"].iloc[i]
+
+        return final_result
+
     if encoding == 'OneHot' or encoding == 'OneHot5Channel':
         # Define the mapping from nucleotides to one-hot encoding using a numpy array for direct indexing
         nucleotide_mapping = np.array([[1, 0, 0, 0],  # A 0
@@ -290,6 +328,8 @@ def prefix_and_suffix_path(model_type, k_fold_number, include_distance_feature, 
         suffix += "_with_OneHotEncoding"
     elif encoding == "OneHot5Channel":
         suffix += "_with_OneHotEncoding5Channel"
+    elif encoding == "kmer":
+        suffix += "_with_kmerEncoding"
     if trans_type != "ln_x_plus_one_trans" and model_type != "classifier":
         suffix += "_" + trans_type
     path_prefix = "trans_only_positive/" + path_prefix if trans_only_positive else path_prefix

@@ -72,7 +72,7 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
           include_distance_feature=False, include_sequence_features=True,
           balanced=False, trans_type="ln_x_plus_one_trans", trans_all_fold=False,
           trans_only_positive=False, exclude_targets_without_positives=False, skip_num_folds=0,
-          path_prefix="", xgb_model=None, transfer_learning_type="add", save_model=True, n_trees=1000,
+          path_prefix="", xgb_model=None, transfer_learning_type="add", save_model=False, n_trees=1000,
           encoding="NPM", use_xgboost=True):
     """
     The train function
@@ -183,77 +183,79 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
                                          **transfer_learning_args)
 
                 start = time.time()
+
+                # Transfer data to GPU using Cupy
+                def to_gpu_array(x):
+                    return cp.asarray(x)
+
+                # Use a specific GPU device
+                gpu_id = 0
+                cp.cuda.Device(gpu_id).use()
+
+                # Convert training data to GPU arrays
+                sequence_features_train_gpu = to_gpu_array(sequence_features_train)
+                sequence_labels_train_gpu = to_gpu_array(sequence_labels_train)
+
                 if model_type == "regression_with_negatives":
-                    # Transfer data to GPU using Cupy
-                    def to_gpu_array(x):
-                        return cp.asarray(x)
-
-                    # Use a specific GPU device
-                    gpu_id = 0
-                    cp.cuda.Device(gpu_id).use()
-
-                    # Convert training data to GPU arrays
-                    sequence_features_train_gpu = to_gpu_array(sequence_features_train)
-                    sequence_labels_train_gpu = to_gpu_array(sequence_labels_train)
-
                     model.fit(sequence_features_train_gpu, sequence_labels_train_gpu,
                               sample_weight=build_sampleweight(sequence_class_train),
                               xgb_model=xgb_model)
-
-                    # # Ensure you have CUDA enabled XGBoost and Cupy installed
-                    #
-                    # # Define the parameter grid or distribution
-                    # param_dist = {
-                    #     'max_depth': [5, 7, 10, 12],
-                    #     'learning_rate': [0.01, 0.05, 0.1, 0.2],
-                    #     'n_estimators': [100, 500, 1000],
-                    #     'subsample': [0.6, 0.8, 1.0],
-                    #     'colsample_bytree': [0.6, 0.8, 1.0]
-                    # }
-                    #
-                    # # Transfer data to GPU using Cupy
-                    # def to_gpu_array(x):
-                    #     return cp.asarray(x)
-                    #
-                    # # Use a specific GPU device
-                    # gpu_id = 0
-                    # cp.cuda.Device(gpu_id).use()
-                    #
-                    # # # Convert training data to GPU arrays
-                    # # sequence_features_train_gpu = to_gpu_array(sequence_features_train)
-                    # # sequence_labels_train_gpu = to_gpu_array(sequence_labels_train)
-                    #
-                    # # Initialize the regressor with GPU settings
-                    # model = xgb.XGBRegressor(nthread=55, **transfer_learning_args)
-                    #
-                    # # Setup randomized search with MAE as the scoring metric random_search = RandomizedSearchCV(model,
-                    # param_distributions=param_dist, n_iter=20, scoring='neg_mean_absolute_error', cv=3, verbose=2,
-                    # random_state=42)
-                    #
-                    # # Fit the randomized search model
-                    # start = time.time()
-                    # if model_type == "regression_with_negatives":
-                    #     random_search.fit(sequence_features_train, sequence_labels_train,
-                    #                       sample_weight=build_sampleweight(sequence_class_train))
-                    # else:
-                    #     random_search.fit(sequence_features_train, sequence_labels_train)
-                    # end = time.time()
-                    #
-                    # print("************** training time:", end - start, "**************")
-                    #
-                    # # Save the best model
-                    # joblib.dump(random_search.best_estimator_, 'best_xgb_regressor_change.joblib')
-                    #
-                    # # Save the best hyperparameters
-                    # best_params = random_search.best_params_
-                    # joblib.dump(best_params, 'best_hyperparameters_regressor_change.joblib')
-                    #
-                    # print("Best parameters found: ", best_params)
-                    # print("Best model saved to disk.")
                 else:
-                    model.fit(sequence_features_train,
-                              sequence_labels_train, xgb_model=xgb_model)
+                    model.fit(sequence_features_train_gpu,
+                              sequence_labels_train_gpu, xgb_model=xgb_model)
                 end = time.time()
+
+
+                # # Ensure you have CUDA enabled XGBoost and Cupy installed
+                #
+                # # Define the parameter grid or distribution
+                # param_dist = {
+                #     'max_depth': [5, 7, 10, 12],
+                #     'learning_rate': [0.01, 0.05, 0.1, 0.2],
+                #     'n_estimators': [100, 500, 1000],
+                #     'subsample': [0.6, 0.8, 1.0],
+                #     'colsample_bytree': [0.6, 0.8, 1.0]
+                # }
+                #
+                # # Transfer data to GPU using Cupy
+                # def to_gpu_array(x):
+                #     return cp.asarray(x)
+                #
+                # # Use a specific GPU device
+                # gpu_id = 0
+                # cp.cuda.Device(gpu_id).use()
+                #
+                # # # Convert training data to GPU arrays
+                # # sequence_features_train_gpu = to_gpu_array(sequence_features_train)
+                # # sequence_labels_train_gpu = to_gpu_array(sequence_labels_train)
+                #
+                # # Initialize the regressor with GPU settings
+                # model = xgb.XGBRegressor(nthread=55, **transfer_learning_args)
+                #
+                # # Setup randomized search with MAE as the scoring metric random_search = RandomizedSearchCV(model,
+                # param_distributions=param_dist, n_iter=20, scoring='neg_mean_absolute_error', cv=3, verbose=2,
+                # random_state=42)
+                #
+                # # Fit the randomized search model
+                # start = time.time()
+                # if model_type == "regression_with_negatives":
+                #     random_search.fit(sequence_features_train, sequence_labels_train,
+                #                       sample_weight=build_sampleweight(sequence_class_train))
+                # else:
+                #     random_search.fit(sequence_features_train, sequence_labels_train)
+                # end = time.time()
+                #
+                # print("************** training time:", end - start, "**************")
+                #
+                # # Save the best model
+                # joblib.dump(random_search.best_estimator_, 'best_xgb_regressor_change.joblib')
+                #
+                # # Save the best hyperparameters
+                # best_params = random_search.best_params_
+                # joblib.dump(best_params, 'best_hyperparameters_regressor_change.joblib')
+                #
+                # print("Best parameters found: ", best_params)
+                # print("Best model saved to disk.")
         else:
             if model_type == "classifier":
                 model = DecisionTreeClassifier(max_depth=None, min_samples_split=5, min_samples_leaf=2,

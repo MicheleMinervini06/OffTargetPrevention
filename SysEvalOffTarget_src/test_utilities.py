@@ -557,6 +557,72 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
     #                     "/classifier/test_results_include_on_targets"
     #                     "/GUIDEseq_OneHot.csv")
 
+    # if data_type == "CHANGEseq":
+    #     if model_type == "regression_with_negatives" and include_distance_feature:
+    #         dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                     "/include_on_targets"
+    #                     "/regression_with_negatives/test_results_include_on_targets"
+    #                     "/CHANGEseq_distance_OneHotEncoding5Channel.csv")
+    #     if model_type == "regression_with_negatives" and not include_distance_feature:
+    #         dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                     "/include_on_targets"
+    #                     "/regression_with_negatives/test_results_include_on_targets"
+    #                     "/CHANGEseq_OneHotEncoding5Channel.csv")
+    #     if model_type == "classifier" and include_distance_feature:
+    #         dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                     "/include_on_targets"
+    #                     "/classifier/test_results_include_on_targets"
+    #                     "/CHANGEseq_distance_OneHotEncoding5Channel.csv")
+    #     if model_type == "classifier" and not include_distance_feature:
+    #         dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+    #                     "/include_on_targets"
+    #                     "/classifier/test_results_include_on_targets"
+    #                     "/CHANGEseq_OneHotEncoding5Channel.csv")
+
+    if data_type == "CHANGEseq":
+        if model_type == "regression_with_negatives" and include_distance_feature:
+            dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+                        "/include_on_targets"
+                        "/regression_with_negatives/test_results_include_on_targets"
+                        "/CHANGEseq_distance_KmerEncoding.csv")
+        if model_type == "regression_with_negatives" and not include_distance_feature:
+            dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+                        "/include_on_targets"
+                        "/regression_with_negatives/test_results_include_on_targets"
+                        "/CHANGEseq_KmerEncoding.csv")
+        if model_type == "classifier" and include_distance_feature:
+            dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+                        "/include_on_targets"
+                        "/classifier/test_results_include_on_targets"
+                        "/CHANGEseq_distance_KmerEncoding.csv")
+        if model_type == "classifier" and not include_distance_feature:
+            dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+                        "/include_on_targets"
+                        "/classifier/test_results_include_on_targets"
+                        "/CHANGEseq_KmerEncoding.csv")
+
+    else:
+        if model_type == "regression_with_negatives" and include_distance_feature:
+            dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+                        "/include_on_targets"
+                        "/regression_with_negatives/test_results_include_on_targets"
+                        "/GUIDEseq_distance_KmerEncoding.csv")
+        if model_type == "regression_with_negatives" and not include_distance_feature:
+            dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+                        "/include_on_targets"
+                        "/regression_with_negatives/test_results_include_on_targets"
+                        "/GUIDEseq_KmerEncoding.csv")
+        if model_type == "classifier" and include_distance_feature:
+            dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+                        "/include_on_targets"
+                        "/classifier/test_results_include_on_targets"
+                        "/GUIDEseq_distance_KmerEncoding.csv")
+        if model_type == "classifier" and not include_distance_feature:
+            dir_path = ("C:\\Users\\mikim\\PycharmProjects\\OffTargetPrevention/files/models_10fold/CHANGEseq"
+                        "/include_on_targets"
+                        "/classifier/test_results_include_on_targets"
+                        "/GUIDEseq_KmerEncoding.csv")
+
     Path(dir_path).parent.mkdir(parents=True, exist_ok=True)
     print(dir_path)
     results_df.to_csv(dir_path)

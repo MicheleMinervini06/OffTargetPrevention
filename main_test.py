@@ -435,16 +435,6 @@ def main():
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # # Evaluating the performance of models trained with One Hot encoding
-    # regular_test_models(
-    #     models_options=tuple(("classifier", "regression_with_negatives")),
-    #     include_distance_feature_options=(True, False),
-    #     include_sequence_features_options=(True,),
-    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
-    #     encoding="OneHot")
-
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
     # # Trying to improve the prediction performance of GUIDEseq regression-seq-dist using hyperparameter tuning
     # regular_test_models(
     #     models_options=tuple(("regression_with_negatives",)),
@@ -463,13 +453,29 @@ def main():
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # Evaluating the performance of models trained with One Hot encoding
+    # # Evaluating the performance of models trained with One Hot encoding
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="OneHot")
+
+    # # Evaluating the performance of models trained with One Hot 5 channel encoding
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="OneHot5Channel")
+
+    # Evaluating the performance of models trained with kmer encoding
     regular_test_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True, False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
-        encoding="OneHot5Channel")
+        encoding="kmer")
 
 
 if __name__ == '__main__':
