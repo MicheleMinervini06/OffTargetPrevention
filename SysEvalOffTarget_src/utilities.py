@@ -162,7 +162,7 @@ def build_sequence_features(dataset_df, nucleotides_to_position_mapping,
 
         return final_result
 
-    if encoding == 'OneHot' or encoding == 'OneHot5Channel':
+    if encoding == 'OneHot' or encoding == 'OneHot5Channel' or encoding == 'OneHotVstack':
         # Define the mapping from nucleotides to one-hot encoding using a numpy array for direct indexing
         nucleotide_mapping = np.array([[1, 0, 0, 0],  # A 0
                                        [0, 1, 0, 0],  # C 1
@@ -187,8 +187,12 @@ def build_sequence_features(dataset_df, nucleotides_to_position_mapping,
         target_encoded = np.array([nucleotide_mapping[indices] for indices in target_indices])
         offtarget_encoded = np.array([nucleotide_mapping[indices] for indices in offtarget_indices])
 
-        # Perform a logical OR operation
-        or_result = np.logical_or(target_encoded, offtarget_encoded).astype(int)
+        if encoding == 'OneHotVstack':
+            # Stack the target and offtarget sequences vertically
+            result = np.concatenate((target_encoded, offtarget_encoded), axis=-1)
+        else:
+            # Perform a logical OR operation
+            result = np.logical_or(target_encoded, offtarget_encoded).astype(int)
 
         if encoding == 'OneHot5Channel':
             # Determine the direction for each position
@@ -207,14 +211,15 @@ def build_sequence_features(dataset_df, nucleotides_to_position_mapping,
             direction_indicators = np.array(direction_indicators)
 
             # Append the direction indicators to the OR result
-            or_result = np.concatenate((or_result, direction_indicators), axis=-1)
+            result = np.concatenate((result, direction_indicators), axis=-1)
 
         # Flatten the results and optionally include the distance feature
+        flattened_result = result.reshape(result.shape[0], -1)  # Vettorizzazione
+
         if include_distance_feature:
-            flattened_results = np.hstack([or_result.reshape(or_result.shape[0], -1),
-                                           dataset_df['distance'].values[:, np.newaxis]])
+            flattened_results = np.hstack([flattened_result, dataset_df['distance'].values[:, np.newaxis]])
         else:
-            flattened_results = or_result.reshape(or_result.shape[0], -1)
+            flattened_results = flattened_result
 
         # Convert the results into a NumPy array with dtype set for memory efficiency
         final_result = np.array(flattened_results, dtype=np.int8)
@@ -330,6 +335,8 @@ def prefix_and_suffix_path(model_type, k_fold_number, include_distance_feature, 
         suffix += "_with_OneHotEncoding5Channel"
     elif encoding == "kmer":
         suffix += "_with_kmerEncoding"
+    elif encoding == "OneHotVstack":
+        suffix += "_with_OneHotEncodingVstack"
     if trans_type != "ln_x_plus_one_trans" and model_type != "classifier":
         suffix += "_" + trans_type
     path_prefix = "trans_only_positive/" + path_prefix if trans_only_positive else path_prefix

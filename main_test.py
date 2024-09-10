@@ -469,13 +469,21 @@ def main():
     #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
     #     encoding="OneHot5Channel")
 
-    # Evaluating the performance of models trained with kmer encoding
+    # # Evaluating the performance of models trained with kmer encoding
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="kmer")
+
+    # Evaluating the performance of models trained with One Hot encoding with vertical stacking
     regular_test_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True, False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
-        encoding="kmer")
+        encoding="OneHotVstack")
 
 
 if __name__ == '__main__':

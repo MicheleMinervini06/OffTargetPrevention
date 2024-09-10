@@ -166,6 +166,7 @@ def regular_train_models(
             for include_sequence_features in include_sequence_features_options:
                 if (not include_distance_feature) and (not include_sequence_features):
                     continue
+
                 train(positive_df, negative_df, targets, nucleotides_to_position_mapping, data_type=data_type,
                       model_type=model_type, k_fold_number=k_fold_number,
                       include_distance_feature=include_distance_feature,
@@ -602,21 +603,29 @@ def main():
     #     encoding="OneHot")
 
     # # Training of Classification-seq-dist and Regression-seq-dist using kmer encoding
-    regular_train_models(
-        models_options=tuple(("classifier", "regression_with_negatives")),
-        include_distance_feature_options=(True, False),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, data_type="CHANGEseq",
-        encoding="kmer")
-
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
     # regular_train_models(
-    #     models_options=tuple(("regression_without_negatives",)),
-    #     include_distance_feature_options=(True,),
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
     #     include_sequence_features_options=(True,),
     #     k_fold_number=10, data_type="CHANGEseq",
-    #     encoding="kmer", save_model=False)
+    #     encoding="kmer")
+
+    # # Training of Classification-seq-dist and Regression-seq-dist using onehot encoding with vertical stacking
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHotVstack")
+
+    # Training of Classification-seq-dist and Regression-seq-dist using onehot encoding with vertical stacking
+    regular_train_models(
+        models_options=tuple(("regression_with_negatives",)),
+        include_distance_feature_options=(False,),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_type="CHANGEseq",
+        encoding="OneHotVstack")
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 if __name__ == '__main__':
