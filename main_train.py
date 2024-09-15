@@ -618,13 +618,14 @@ def main():
     #     k_fold_number=10, data_type="CHANGEseq",
     #     encoding="OneHotVstack")
 
-    # Training of Classification-seq-dist and Regression-seq-dist using onehot encoding with vertical stacking
+    # Training of Classification-seq-dist and Regression-seq-dist using Label encoding pairwise
     regular_train_models(
-        models_options=tuple(("regression_with_negatives",)),
-        include_distance_feature_options=(False,),
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True, False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_type="CHANGEseq",
-        encoding="OneHotVstack")
+        encoding="LabelEncodingPairwise")
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 

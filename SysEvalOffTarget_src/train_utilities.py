@@ -161,12 +161,18 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
               len(positive_sequence_features_train), ", negative:", negative_num)
         if use_xgboost:
             if model_type == "classifier":
-                model = xgb.XGBClassifier(max_depth=12,
+                # model = xgb.XGBClassifier(max_depth=12,
+                #                           learning_rate=0.1,
+                #                           n_estimators=500,
+                #                           nthread=55,
+                #                           colsample_bytree=1.0,
+                #                           subsample=1.0,
+                #                           **transfer_learning_args)
+
+                model = xgb.XGBClassifier(max_depth=10,
                                           learning_rate=0.1,
-                                          n_estimators=500,
+                                          n_estimators=n_trees,
                                           nthread=55,
-                                          colsample_bytree=1.0,
-                                          subsample=1.0,
                                           **transfer_learning_args)
                 start = time.time()
                 model.fit(sequence_features_train, sequence_class_train,
@@ -174,35 +180,40 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
                 end = time.time()
                 print("************** training time:", end - start, "**************")
             else:
-                model = xgb.XGBRegressor(max_depth=12,
+                # model = xgb.XGBRegressor(max_depth=12,
+                #                          learning_rate=0.1,
+                #                          n_estimators=500,
+                #                          nthread=55,
+                #                          colsample_bytree=1.0,
+                #                          subsample=1.0,
+                #                          **transfer_learning_args)
+                model = xgb.XGBRegressor(max_depth=10,
                                          learning_rate=0.1,
-                                         n_estimators=500,
+                                         n_estimators=n_trees,
                                          nthread=55,
-                                         colsample_bytree=1.0,
-                                         subsample=1.0,
                                          **transfer_learning_args)
 
                 start = time.time()
 
-                # Transfer data to GPU using Cupy
-                def to_gpu_array(x):
-                    return cp.asarray(x)
-
-                # Use a specific GPU device
-                gpu_id = 0
-                cp.cuda.Device(gpu_id).use()
-
-                # Convert training data to GPU arrays
-                sequence_features_train_gpu = to_gpu_array(sequence_features_train)
-                sequence_labels_train_gpu = to_gpu_array(sequence_labels_train)
+                # # Transfer data to GPU using Cupy
+                # def to_gpu_array(x):
+                #     return cp.asarray(x)
+                #
+                # # Use a specific GPU device
+                # gpu_id = 0
+                # cp.cuda.Device(gpu_id).use()
+                #
+                # # Convert training data to GPU arrays
+                # sequence_features_train_gpu = to_gpu_array(sequence_features_train)
+                # sequence_labels_train_gpu = to_gpu_array(sequence_labels_train)
 
                 if model_type == "regression_with_negatives":
-                    model.fit(sequence_features_train_gpu, sequence_labels_train_gpu,
+                    model.fit(sequence_features_train, sequence_labels_train,
                               sample_weight=build_sampleweight(sequence_class_train),
                               xgb_model=xgb_model)
                 else:
-                    model.fit(sequence_features_train_gpu,
-                              sequence_labels_train_gpu, xgb_model=xgb_model)
+                    model.fit(sequence_features_train,
+                              sequence_labels_train, xgb_model=xgb_model)
                 end = time.time()
 
 
@@ -320,6 +331,7 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
                 print(dir_path)
                 model.save_model(dir_path)
         models.append(model)
+
 
     # End timing
     end_time = time.time()

@@ -162,6 +162,39 @@ def build_sequence_features(dataset_df, nucleotides_to_position_mapping,
 
         return final_result
 
+    """INcluding the Label Encoding Pairwise"""
+    if encoding == 'LabelEncodingPairwise':
+        # Definisci la mappatura delle coppie di nucleotidi
+        nucleotide_pairs_mapping = {
+            ('A', 'A'): 0, ('A', 'C'): 1, ('A', 'G'): 2, ('A', 'T'): 3,
+            ('C', 'A'): 4, ('C', 'C'): 5, ('C', 'G'): 6, ('C', 'T'): 7,
+            ('G', 'A'): 8, ('G', 'C'): 9, ('G', 'G'): 10, ('G', 'T'): 11,
+            ('T', 'A'): 12, ('T', 'C'): 13, ('T', 'G'): 14, ('T', 'T'): 15
+        }
+
+        # Funzione per mappare le coppie di nucleotidi con il trattamento di 'N'
+        def pairwise_sequence_encoding(seq1, seq2):
+            encoded_seq = []
+            for n1, n2 in zip(seq1, seq2):
+                if n1 == 'N':
+                    n1 = n2  # Se n1 è 'N', trattalo come n2
+                elif n2 == 'N':
+                    n2 = n1  # Se n2 è 'N', trattalo come n1
+                encoded_seq.append(nucleotide_pairs_mapping[(n1, n2)])
+            return encoded_seq
+
+        # Applica il pairwise encoding alle sequenze target e off-target
+        pairwise_encoded = np.array([pairwise_sequence_encoding(seq1, seq2)
+                                     for seq1, seq2 in zip(dataset_df['target'], dataset_df['offtarget_sequence'])])
+
+        # Aggiungi opzionalmente la feature di distanza
+        if include_distance_feature:
+            flattened_results = np.hstack([pairwise_encoded, dataset_df['distance'].values[:, np.newaxis]])
+        else:
+            flattened_results = pairwise_encoded
+
+        return flattened_results
+
     if encoding == 'OneHot' or encoding == 'OneHot5Channel' or encoding == 'OneHotVstack':
         # Define the mapping from nucleotides to one-hot encoding using a numpy array for direct indexing
         nucleotide_mapping = np.array([[1, 0, 0, 0],  # A 0
@@ -337,6 +370,8 @@ def prefix_and_suffix_path(model_type, k_fold_number, include_distance_feature, 
         suffix += "_with_kmerEncoding"
     elif encoding == "OneHotVstack":
         suffix += "_with_OneHotEncodingVstack"
+    elif encoding == "LabelEncodingPairwise":
+        suffix += "_with_LabelEncodingPairwise"
     if trans_type != "ln_x_plus_one_trans" and model_type != "classifier":
         suffix += "_" + trans_type
     path_prefix = "trans_only_positive/" + path_prefix if trans_only_positive else path_prefix
