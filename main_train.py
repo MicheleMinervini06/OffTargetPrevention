@@ -561,22 +561,6 @@ def main():
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # # Trying to improve the prediction performance of GUIDEseq regression-seq-dist using hyperparameter tuning
-    # regular_train_models(
-    #     models_options=tuple(("regression_with_negatives",)),
-    #     include_distance_feature_options=(True,),
-    #     include_sequence_features_options=(True,),
-    #     k_fold_number=10, data_type="GUIDEseq")
-
-    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist using hyperparameter tuning
-    # regular_train_models(
-    #     models_options=tuple(("regression_with_negatives",)),
-    #     include_distance_feature_options=(True,),
-    #     include_sequence_features_options=(True,),
-    #     k_fold_number=10, data_type="CHANGEseq")
-
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
     # # Training the model using a decision tree
     # regular_train_models(
     #     models_options=tuple(("regression_with_negatives", "classifier", "regression_without_negatives")),
@@ -586,14 +570,6 @@ def main():
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # # Training of Classification-seq-dist and Regression-seq-dist using onehot 5 channel encoding
-    # regular_train_models(
-    #     models_options=tuple(("classifier", "regression_with_negatives")),
-    #     include_distance_feature_options=(True, False),
-    #     include_sequence_features_options=(True,),
-    #     k_fold_number=10, data_type="CHANGEseq",
-    #     encoding="OneHot5Channel")
-
     # # Training of Classification-seq-dist and Regression-seq-dist using onehot encoding
     # regular_train_models(
     #     models_options=tuple(("classifier", "regression_with_negatives")),
@@ -601,6 +577,14 @@ def main():
     #     include_sequence_features_options=(True,),
     #     k_fold_number=10, data_type="CHANGEseq",
     #     encoding="OneHot")
+
+    # # Training of Classification-seq-dist and Regression-seq-dist using onehot 5 channel encoding
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHot5Channel")
 
     # # Training of Classification-seq-dist and Regression-seq-dist using kmer encoding
     # regular_train_models(
@@ -618,15 +602,79 @@ def main():
     #     k_fold_number=10, data_type="CHANGEseq",
     #     encoding="OneHotVstack")
 
-    # Training of Classification-seq-dist and Regression-seq-dist using Label encoding pairwise
-    regular_train_models(
-        models_options=tuple(("classifier", "regression_with_negatives")),
-        include_distance_feature_options=(True, False),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, data_type="CHANGEseq",
-        encoding="LabelEncodingPairwise")
+    # # Training of Classification-seq-dist and Regression-seq-dist using Label encoding pairwise
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="LabelEncodingPairwise")
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # # Trying to improve the prediction performance of GUIDEseq regression-seq-dist using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="GUIDEseq")
+
+    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist with One Hot Encoding using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=1, data_type="CHANGEseq",
+    #     encoding="OneHot", save_model=False)
+
+    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist with One Hot Encoding 5 channel using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=1, data_type="CHANGEseq",
+    #     encoding="OneHot5Channel", save_model=False)
+
+    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist with kmer encoding using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=1, data_type="CHANGEseq",
+    #     encoding="kmer", save_model=False)
+
+    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist with kmer encoding using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=1, data_type="CHANGEseq",
+    #     encoding="OneHotVstack", save_model=False)
+
+    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist with kmer encoding using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=1, data_type="CHANGEseq",
+    #     encoding="LabelEncodingPairwise", save_model=False)
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Training the models without negatives to evaluate the performance of the models
+    regular_train_models(
+        models_options=tuple(("regression_without_negatives",)),
+        include_distance_feature_options=(True,),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_type="CHANGEseq",
+        encoding="NPM", save_model=False)
 
 
 if __name__ == '__main__':

@@ -10,6 +10,8 @@ from SysEvalOffTarget_src.test_utilities import load_model, load_fold_dataset
 from SysEvalOffTarget_src.utilities import load_order_sg_rnas, order_sg_rnas, build_sequence_features, \
     create_nucleotides_to_position_mapping
 
+from deeplift.visualization import viz_sequence
+
 
 def PDP(model_type="classifier", include_distance_feature=True, include_sequence_features=True, balanced=False,
         trans_type="ln_x_plus_one_trans",
@@ -216,6 +218,20 @@ def SHAP_explain(model_type="classifier", include_distance_feature=True, include
     feature = [int(i / 23) for i in range(368)]
     # mapping
     feature_names = [str(i + 1) for i in feature]
+
+    # # Definisco i nucleotidi possibili
+    # nucleotides = ['A', 'T', 'C', 'G']
+    #
+    # # Creo tutte le combinazioni di dinucleotidi
+    # nucleotide_combinations = [f'{n1}->{n2}' for n1 in nucleotides for n2 in nucleotides]
+    #
+    # # Ogni feature rappresenta una coppia di nucleotidi in una posizione del vettore
+    # # Ad esempio: '1_A->A', '1_A->T', ..., '1_T->G', ..., '16_A->A', ecc.
+    # feature_names = []
+    # num_positions = 23
+    # for i in range(num_positions):
+    #     for nucleotide_pair in nucleotide_combinations:
+    #         feature_names.append(f'{i + 1}_{nucleotide_pair}')
     feature_names.append("Distance")
 
     # Defining prefix to load the model
@@ -326,5 +342,106 @@ def sample_numpy_array(data, sample_size):
     return sampled_data
 
 
+def SHAP_explain_single_prediction(model_type="classifier", include_distance_feature=True,
+                                   include_sequence_features=True, balanced=False,
+                                   trans_type="ln_x_plus_one_trans", trans_all_fold=False, trans_only_positive=False,
+                                   exclude_targets_without_positives=False, k_fold_number=10, gpu=True, encoding='NPM',
+                                   data_type="GUIDEseq", single_grna=None):
+    # Feature index for the SHAP explanation
+    all_shap_values = []
+    all_data_samples = []
+
+    # # Feature names as the nucleotide position
+    # feature = [int(i / 23) for i in range(368)]
+    # # mapping
+    # feature_names = [str(i + 1) for i in feature]
+    # feature_names.append("Distance")
+
+    # Definisco i nucleotidi possibili
+    nucleotides = ['A', 'T', 'C', 'G']
+
+    # Creo tutte le combinazioni di dinucleotidi
+    nucleotide_combinations = [f'{n1}->{n2}' for n1 in nucleotides for n2 in nucleotides]
+
+    # Ogni feature rappresenta una coppia di nucleotidi in una posizione del vettore
+    # Ad esempio: '1_A->A', '1_A->T', ..., '1_T->G', ..., '16_A->A', ecc.
+    feature_names = []
+    num_positions = 23
+    for i in range(num_positions):
+        for nucleotide_pair in nucleotide_combinations:
+            feature_names.append(f'{i + 1}_{nucleotide_pair}')
+    feature_names.append("Distance")
+
+    # Defining prefix to load the model
+    path_prefix = 'CHANGEseq/include_on_targets/' + model_type + "/"
+
+    # Loading the targets (i.e. sgRNAs)
+    try:
+        targets = load_order_sg_rnas()
+    except FileNotFoundError:
+        targets = order_sg_rnas()
+
+    # Loading the dataset
+    datasets_dir_path = general_utilities.DATASETS_PATH
+    datasets_dir_path += 'include_on_targets/'
+    positive_df = pd.read_csv(datasets_dir_path + '{}_positive.csv'.format(data_type), index_col=0)
+    negative_df = pd.read_csv(datasets_dir_path + '{}_negative.csv'.format(data_type), index_col=0)
+    negative_df = negative_df[negative_df["offtarget_sequence"].str.find('N') == -1]  # Remove invalid sequences
+
+    nucleotides_to_position_mapping = create_nucleotides_to_position_mapping()
+
+    target_folds_list = np.array_split(targets, k_fold_number)
+
+    for i, target_fold in enumerate(target_folds_list):
+        if single_grna is None:
+            negative_df_test, positive_df_test = load_fold_dataset(data_type, target_fold, targets, positive_df,
+                                                                   negative_df, balanced=False,
+                                                                   evaluate_only_distance=None,
+                                                                   exclude_targets_without_positives=False)
+        elif single_grna in target_fold:
+            positive_df_test = positive_df[positive_df["target"] == single_grna]
+            negative_df_test = negative_df[negative_df["target"] == single_grna]
+        else:
+            continue  # Skip if the target is not in the current fold
+
+        model = load_model(model_type, k_fold_number, i, gpu, trans_type, balanced,
+                           include_distance_feature, include_sequence_features, path_prefix,
+                           trans_all_fold, trans_only_positive, exclude_targets_without_positives, encoding=encoding)
+
+        for j, dataset_df in enumerate((positive_df_test, negative_df_test)):
+            # Build sequence features for the positive test dataset
+            sequence_features_test = build_sequence_features(dataset_df, nucleotides_to_position_mapping,
+                                                             include_distance_feature=include_distance_feature,
+                                                             include_sequence_features=include_sequence_features,
+                                                             encoding=encoding)
+
+            # Convert sequence_features_test to a numpy array if it's a list
+            if isinstance(sequence_features_test, list):
+                sequence_features_test = np.array(sequence_features_test)
+
+            # Instantiate the DeepExplainer
+            explainer = shap.DeepExplainer(model, sequence_features_test)
+
+            # Compute SHAP values using DeepExplainer
+            shap_values = explainer.shap_values(sequence_features_test)
+            data_sample = sequence_features_test  # Assuming sequence_features_test is the input sample
+
+            all_shap_values.append(shap_values)
+            all_data_samples.append(data_sample)
+
+            dataset = "positive" if j == 0 else "negative"
+            print(f"Computed SHAP values for {dataset} subset {i + 1}")
+
+    # Combine the SHAP values and data samples
+    combined_shap_values = np.vstack(all_shap_values)
+    combined_data_samples = np.vstack(all_data_samples)
+
+    # Plot summary plot for combined SHAP values
+    shap.summary_plot(combined_shap_values, combined_data_samples, feature_names=feature_names)
+
+    return combined_shap_values
+
+
 if __name__ == '__main__':
-    SHAP_explain(model_type="regression_with_negatives", single_grna="GTCACCAATCCTGTCCCTAGNGG")
+    #SHAP_explain_single_prediction(model_type="regression_with_negatives")
+    SHAP_explain(model_type="regression_with_negatives", single_grna="GGTGAGGGAGGAGAGATGCCNGG")
