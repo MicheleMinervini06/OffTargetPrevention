@@ -166,7 +166,7 @@ def regular_train_models(
             for include_sequence_features in include_sequence_features_options:
                 if (not include_distance_feature) and (not include_sequence_features):
                     continue
-
+                encoding = ("NPM", "OneHot", "OneHot5Channel", "OneHotVstack", "kmer", "LabelEncodingPairwise")
                 train(positive_df, negative_df, targets, nucleotides_to_position_mapping, data_type=data_type,
                       model_type=model_type, k_fold_number=k_fold_number,
                       include_distance_feature=include_distance_feature,
@@ -669,13 +669,54 @@ def main():
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     # Training the models without negatives to evaluate the performance of the models
+
+    # # Nucleotide Position Mapping
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="NPM", save_model=False)
+
+    # # One Hot Encoding
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHot", save_model=False)
+
+    # # One Hot Encoding 5 Channel
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHot5Channel", save_model=False)
+    
+    # # One Hot Vstack
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHotVstack", save_model=False)
+
+    # # K-mer encoding
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="kmer", save_model=False)
+
+    # Label Encoding Pairwise
     regular_train_models(
         models_options=tuple(("regression_without_negatives",)),
         include_distance_feature_options=(True,),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_type="CHANGEseq",
-        encoding="NPM", save_model=False)
-
+        encoding="LabelEncodingPairwise", save_model=False)
 
 if __name__ == '__main__':
     main()

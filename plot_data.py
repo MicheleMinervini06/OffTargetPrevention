@@ -186,6 +186,87 @@ def bar_plot(csv_info, task, title):
     plt.show()
 
 
+# Funzione per generare un grafico dei tempi di esecuzione per ciascun encoding
+def plot_execution_times(timing_info):
+    # Imposta uno stile predefinito per i grafici
+    sns.set(style="whitegrid")
+
+    encodings = list(timing_info.keys())
+    times = list(timing_info.values())
+
+    # Creazione della figura
+    plt.figure(figsize=(12, 7))
+
+    # Grafico a barre con annotazioni
+    bars = plt.bar(encodings, times, color=sns.color_palette("Blues", len(encodings)), edgecolor='black')
+
+    # Aggiunta di annotazioni per il valore su ciascuna barra
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2, yval + 0.5, f'{yval:.2f}', ha='center', fontsize=12,
+                 fontweight='bold')
+
+    # Personalizzazioni
+    plt.xlabel('Encoding', fontsize=14, fontweight='bold')
+    plt.ylabel('Execution Time (seconds)', fontsize=14, fontweight='bold')
+    plt.title('Training Time per Encoding', fontsize=18, fontweight='bold')
+    plt.xticks(rotation=45, ha='right', fontsize=12)
+    plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+
+    # Mostra il grafico
+    plt.tight_layout()
+    plt.show()
+
+
+# Funzione per generare un boxplot con informazioni sulla media per ciascun encoding
+def plot_boxplot_with_mean(fold_times):
+    # Imposta uno stile predefinito per i grafici
+    sns.set(style="whitegrid")
+
+    plt.figure(figsize=(10, 7))
+
+    # Converte i dati in una lista di tuple (encoding, valore) per il boxplot
+    encodings = []
+    values = []
+
+    for encoding, times in fold_times.items():
+        encodings.extend([encoding] * len(times))
+        values.extend(times)
+
+    # Assegna un colore personalizzato per ciascun encoding
+    colors = sns.color_palette("Set2", len(fold_times))
+
+    # Crea il boxplot
+    sns.boxplot(x=encodings, y=values, palette=colors, boxprops=dict(alpha=0.7), width=0.6, hue=encodings, legend=False)
+
+    # Calcolo della media per ciascun encoding
+    for i, encoding in enumerate(fold_times.keys()):
+        mean_val = np.mean(fold_times[encoding])
+
+        # Aggiunge annotazioni della media
+        plt.text(i, mean_val + 0.5, f'Mean: {mean_val:.2f}', ha='center', color='black', fontsize=12,
+                 fontweight='bold')
+
+    # Personalizzazioni
+    plt.xlabel('Encoding', fontsize=14, fontweight='bold', color='#333')
+    plt.ylabel('Execution Time (seconds)', fontsize=14, fontweight='bold', color='#333')
+    plt.title('Training Time per Encoding with Mean', fontsize=18, fontweight='bold', color='#333')
+    plt.xticks(rotation=45, ha='right', fontsize=12, color='#555')
+    plt.yticks(fontsize=12, color='#555')
+
+    # Aggiungi una griglia leggera
+    plt.grid(True, axis='y', linestyle='--', alpha=0.5)
+
+    # Miglioramenti visivi: estendi l'intervallo Y per dare più spazio ai box
+    plt.ylim(min(values) - 3, max(values) + 3)  # Estende il range Y per dare più altezza ai box
+
+    # Miglioramenti visivi
+    plt.tight_layout(pad=2)
+
+    # Mostra il grafico
+    plt.show()
+
+
 def linear_regression_plot(csv1):
     df1 = pd.read_csv(csv1)
 
@@ -389,14 +470,11 @@ def main():
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # The combination of sequence and distance features achieves the best prediction performance
-
-    # # Labels for the boxplot
-    # labels = ['Classification-seq', 'Classification-seq-dist', 'Regression-seq', 'Regression-seq-dist']
+    # # The combination of sequence and distance features achieves the best prediction performance
     #
     # # Labels for the boxplot
     # labels = ['Classification-seq', 'Classification-seq-dist', 'Regression-seq', 'Regression-seq-dist']
-
+    #
     # # A - CHANGE-seq: Classification task
     # csv_info_a = [
     #     {
@@ -2979,66 +3057,79 @@ def main():
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # Confronting performance of Label Encoding Pairwise tuned and tuned with higher depth
+    # # Confronting performance of Label Encoding Pairwise tuned and tuned with higher depth
+    #
+    # # Classification seq
+    # scatter_plot("files/models_10fold/CHANGEseq"
+    #                  "/include_on_targets"
+    #                  "/classifier/test_results_include_on_targets"
+    #                  "/GUIDEseq_LabelEncodingPairwise.csv",
+    #              "files/models_10fold/CHANGEseq"
+    #                  "/include_on_targets"
+    #                  "/classifier/test_results_include_on_targets"
+    #                  "/GUIDEseq_LabelEncodingPairwise_HigherDepth.csv",
+    #              title="GUIDE-seq: Regression task for Classification seq",
+    #              xlabel="Classification-seq with label encoding pairwise tuned",
+    #              ylabel="Classification-seq with label encoding pairwise tuned with higher depth",
+    #              metric="pearson_reads_to_proba_for_positive_set",
+    #              task="regression")
+    #
+    # #  Classification seq-dist
+    # scatter_plot("files/models_10fold/CHANGEseq"
+    #                  "/include_on_targets"
+    #                  "/classifier/test_results_include_on_targets"
+    #                  "/GUIDEseq_distance_LabelEncodingPairwise.csv",
+    #              "files/models_10fold/CHANGEseq"
+    #                  "/include_on_targets"
+    #                  "/classifier/test_results_include_on_targets"
+    #                  "/GUIDEseq_distance_LabelEncodingPairwise_HigherDepth.csv",
+    #              title="GUIDE-seq: Regression task for Classification seq-dist",
+    #              xlabel="Classification-seq-dist with label encoding pairwise tuned",
+    #              ylabel="Classification-seq-dist with label encoding pairwise tuned with higher depth",
+    #              metric="pearson_reads_to_proba_for_positive_set",
+    #              task="regression")
+    #
+    # # Regression seq
+    # scatter_plot("files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
+    #              "/test_results_include_on_targets"
+    #              "/GUIDEseq_regression_with_negatives_results_xgb_model_all_10_folds_imbalanced.csv",
+    #              "files/models_10fold/CHANGEseq"
+    #                  "/include_on_targets"
+    #                  "/regression_with_negatives/test_results_include_on_targets"
+    #                  "/GUIDEseq_LabelEncodingPairwise_HigherDepth.csv",
+    #              title="GUIDE-seq: Regression task for Regression seq",
+    #              xlabel="Classification-seq-dist with label encoding pairwise tuned",
+    #              ylabel="Classification-seq-dist with label encoding pairwise tuned with higher depth",
+    #              metric="pearson_only_positives_after_inv_trans",
+    #              task="regression")
+    #
+    # # Regression seq-dist
+    # scatter_plot("files/models_10fold/CHANGEseq"
+    #                  "/include_on_targets"
+    #                  "/regression_with_negatives/test_results_include_on_targets"
+    #                  "/GUIDEseq_distance_LabelEncodingPairwise.csv",
+    #              "files/models_10fold/CHANGEseq"
+    #                  "/include_on_targets"
+    #                  "/regression_with_negatives/test_results_include_on_targets"
+    #                  "/GUIDEseq_distance_LabelEncodingPairwise_HigherDepth.csv",
+    #              title="GUIDE-seq: Regression task for Regression seq-dist",
+    #              xlabel="Classification-seq-dist with label encoding pairwise tuned",
+    #              ylabel="Classification-seq-dist with label encoding pairwise tuned with higher depth",
+    #              metric="pearson_only_positives_after_inv_trans",
+    #              task="regression")
 
-    # Classification seq
-    scatter_plot("files/models_10fold/CHANGEseq"
-                     "/include_on_targets"
-                     "/classifier/test_results_include_on_targets"
-                     "/GUIDEseq_LabelEncodingPairwise.csv",
-                 "files/models_10fold/CHANGEseq"
-                     "/include_on_targets"
-                     "/classifier/test_results_include_on_targets"
-                     "/GUIDEseq_LabelEncodingPairwise_HigherDepth.csv",
-                 title="GUIDE-seq: Regression task for Classification seq",
-                 xlabel="Classification-seq with label encoding pairwise tuned",
-                 ylabel="Classification-seq with label encoding pairwise tuned with higher depth",
-                 metric="pearson_reads_to_proba_for_positive_set",
-                 task="regression")
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    #  Classification seq-dist
-    scatter_plot("files/models_10fold/CHANGEseq"
-                     "/include_on_targets"
-                     "/classifier/test_results_include_on_targets"
-                     "/GUIDEseq_distance_LabelEncodingPairwise.csv",
-                 "files/models_10fold/CHANGEseq"
-                     "/include_on_targets"
-                     "/classifier/test_results_include_on_targets"
-                     "/GUIDEseq_distance_LabelEncodingPairwise_HigherDepth.csv",
-                 title="GUIDE-seq: Regression task for Classification seq-dist",
-                 xlabel="Classification-seq-dist with label encoding pairwise tuned",
-                 ylabel="Classification-seq-dist with label encoding pairwise tuned with higher depth",
-                 metric="pearson_reads_to_proba_for_positive_set",
-                 task="regression")
+    # Esempio di utilizzo
+    fold_times = {
+        'NPM': [30, 32, 31, 29, 35],
+        'OneHot': [22, 21, 20, 23, 22],
+        'OneHot5Channel': [25, 24, 23, 26, 24],
+        'OneHotVStack': [28, 27, 29, 26, 30],
+        'Kmer': [35, 36, 38, 37, 36],
+        'LabelEncodingPairwise': [18, 17, 16, 19, 18]
+    }
 
-    # Regression seq
-    scatter_plot("files/models_10fold/CHANGEseq/include_on_targets/regression_with_negatives"
-                 "/test_results_include_on_targets"
-                 "/GUIDEseq_regression_with_negatives_results_xgb_model_all_10_folds_imbalanced.csv",
-                 "files/models_10fold/CHANGEseq"
-                     "/include_on_targets"
-                     "/regression_with_negatives/test_results_include_on_targets"
-                     "/GUIDEseq_LabelEncodingPairwise_HigherDepth.csv",
-                 title="GUIDE-seq: Regression task for Regression seq",
-                 xlabel="Classification-seq-dist with label encoding pairwise tuned",
-                 ylabel="Classification-seq-dist with label encoding pairwise tuned with higher depth",
-                 metric="pearson_only_positives_after_inv_trans",
-                 task="regression")
-
-    # Regression seq-dist
-    scatter_plot("files/models_10fold/CHANGEseq"
-                     "/include_on_targets"
-                     "/regression_with_negatives/test_results_include_on_targets"
-                     "/GUIDEseq_distance_LabelEncodingPairwise.csv",
-                 "files/models_10fold/CHANGEseq"
-                     "/include_on_targets"
-                     "/regression_with_negatives/test_results_include_on_targets"
-                     "/GUIDEseq_distance_LabelEncodingPairwise_HigherDepth.csv",
-                 title="GUIDE-seq: Regression task for Regression seq-dist",
-                 xlabel="Classification-seq-dist with label encoding pairwise tuned",
-                 ylabel="Classification-seq-dist with label encoding pairwise tuned with higher depth",
-                 metric="pearson_only_positives_after_inv_trans",
-                 task="regression")
-
+    plot_boxplot_with_mean(fold_times)
 if __name__ == '__main__':
     main()
