@@ -1,8 +1,5 @@
 # SysEvalOffTarget
 
-The code developed for the manuscript:
-[A systematic evaluation of data processing and problem formulation of CRISPR off-target site prediction](https://academic.oup.com/bib/article-abstract/23/5/bbac157/6589868)
-
 The code contains multiple options for training and testing models, including a transfer learning model for CHANGE-seq to GUIDE-seq. 
 
 # Usage
