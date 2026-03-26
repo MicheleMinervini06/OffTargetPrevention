@@ -213,7 +213,7 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
           balanced=False, trans_type="ln_x_plus_one_trans", trans_all_fold=False,
           trans_only_positive=False, exclude_targets_without_positives=False, skip_num_folds=0,
           path_prefix="", xgb_model=None, transfer_learning_type="add", save_model=False, n_trees=1000,
-          encoding="NPM", use_xgboost=True):
+          encoding="NPM", use_xgboost=True, model_backend=None):
     """
     The train function
     """
@@ -226,6 +226,20 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
     # Dictionary to store timing information for ea
     timing_info = defaultdict(float)
     fold_times = defaultdict(list)
+
+    # Backward-compatible backend selection:
+    # if model_backend is not provided, preserve old behavior driven by use_xgboost.
+    if model_backend is None:
+        model_backend = "xgboost" if use_xgboost else "decision_tree"
+    if not isinstance(model_backend, str):
+        raise ValueError("model_backend must be a string")
+    model_backend = model_backend.lower()
+    if model_backend == "xgb":
+        model_backend = "xgboost"
+    if model_backend not in ("xgboost", "catboost", "decision_tree"):
+        raise ValueError("model_backend must be one of: 'xgboost', 'catboost', 'decision_tree'")
+    if model_backend != "xgboost" and xgb_model is not None:
+        raise ValueError("xgb_model transfer learning is currently supported only with model_backend='xgboost'")
 
     # set transfer_learning setting if needed
     # 'tree_method': 'gpu_hist' is deprecated, changed in 'device': 'cuda'
@@ -348,28 +362,13 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
             print("train fold ", i + skip_num_folds, " positive:",
                   len(positive_sequence_features_train), ", negative:", negative_num)
 
-            if use_xgboost:
+            if model_backend == "xgboost":
                 if model_type == "classifier":
                     # model = xgb.XGBClassifier(max_depth=10,
                     #                           learning_rate=0.1,
                     #                           n_estimators=n_trees,
                     #                           nthread=55,
                     #                           **transfer_learning_args)
-
-                    # # Hyperparameters for fine-tuned model using One Hot encoding with CatBoost
-                    # model = CatBoostClassifier(depth=12,
-                    #                          learning_rate=0.05,
-                    #                          iterations=3000,           # Aumentato per dare più margine
-                    #                          l2_leaf_reg=9,
-                    #                          subsample=0.8,
-                    #                          bootstrap_type='Bernoulli',
-                    #                          thread_count=-1,
-                    #                          verbose=100,               # Mostra progresso ogni 100 iterazioni
-                    #                          random_seed=42,
-                    #                          cat_features=cat_feature_indices,
-                    #                          early_stopping_rounds=120, # Ottimizzato per lr=0.05
-                    #                          use_best_model=True,       # FONDAMENTALE per early stopping
-                    #                          task_type='GPU' if 'device' in transfer_learning_args and 'cuda' in str(transfer_learning_args['device']) else 'CPU')
 
                     if enc == "OneHot":
                         # Hyperparameters for fine-tuned model using One Hot encoding with XGBoost
@@ -456,21 +455,6 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
                     #                          n_estimators=n_trees,
                     #                          nthread=55,
                     #                          **transfer_learning_args)
-
-                    # # Hyperparameters for fine-tuned model using One Hot encoding with CatBoost
-                    # model = CatBoostRegressor(depth=12,
-                    #                          learning_rate=0.05,
-                    #                          iterations=3000,           # Aumentato per dare più margine
-                    #                          l2_leaf_reg=9,
-                    #                          subsample=0.8,
-                    #                          bootstrap_type='Bernoulli',
-                    #                          thread_count=-1,
-                    #                          verbose=100,               # Mostra progresso ogni 100 iterazioni
-                    #                          random_seed=42,
-                    #                          cat_features=cat_feature_indices,
-                    #                          early_stopping_rounds=120, # Ottimale per lr=0.05
-                    #                          use_best_model=True,       # FONDAMENTALE per early stopping
-                    #                          task_type='GPU' if 'device' in transfer_learning_args and 'cuda' in str(transfer_learning_args['device']) else 'CPU')
         
                     if enc == "OneHot":
                         # Hyperparameters for fine-tuned model using One Hot encoding with XGBoost
@@ -706,6 +690,73 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
                     # print("Migliori parametri trovati: ", best_params)
                     # print("Miglior modello salvato su disco.")
 
+            elif model_backend == "catboost":
+                start = time.time()
+                from sklearn.model_selection import train_test_split
+
+                use_gpu = transfer_learning_args.get('device') == 'cuda'
+                catboost_common_args = {
+                    'depth': 12,
+                    'learning_rate': 0.05,
+                    'iterations': 3000,
+                    'l2_leaf_reg': 9,
+                    'subsample': 0.8,
+                    'bootstrap_type': 'Bernoulli',
+                    'thread_count': -1,
+                    'verbose': 100,
+                    'random_seed': 42,
+                    'task_type': 'GPU' if use_gpu else 'CPU'
+                }
+
+                # Only categorical for the dedicated CatBoost encoding; other encodings are numeric.
+                cat_feature_indices = [i for i in range(0, 23)] if enc == "CatBoost" and include_sequence_features else []
+
+                if model_type == "classifier":
+                    model = CatBoostClassifier(cat_features=cat_feature_indices, **catboost_common_args)
+                    X_train, X_val, y_train, y_val = train_test_split(
+                        sequence_features_train, sequence_class_train,
+                        test_size=0.2, random_state=42, stratify=sequence_class_train
+                    )
+                    train_weights = build_sampleweight(y_train)
+                    model.fit(
+                        X_train, y_train,
+                        sample_weight=train_weights,
+                        eval_set=(X_val, y_val),
+                        use_best_model=True,
+                        early_stopping_rounds=120,
+                        verbose=100
+                    )
+                else:
+                    model = CatBoostRegressor(cat_features=cat_feature_indices, **catboost_common_args)
+                    if model_type == "regression_with_negatives":
+                        X_train, X_val, y_train, y_val, class_train, class_val = train_test_split(
+                            sequence_features_train, sequence_labels_train, sequence_class_train,
+                            test_size=0.2, random_state=42
+                        )
+                        train_weights = build_sampleweight(class_train)
+                        model.fit(
+                            X_train, y_train,
+                            sample_weight=train_weights,
+                            eval_set=(X_val, y_val),
+                            use_best_model=True,
+                            early_stopping_rounds=120,
+                            verbose=100
+                        )
+                    else:
+                        X_train, X_val, y_train, y_val = train_test_split(
+                            sequence_features_train, sequence_labels_train,
+                            test_size=0.2, random_state=42
+                        )
+                        model.fit(
+                            X_train, y_train,
+                            eval_set=(X_val, y_val),
+                            use_best_model=True,
+                            early_stopping_rounds=120,
+                            verbose=100
+                        )
+
+                end = time.time()
+                print("************** training time:", end - start, "**************")
             else:
                 if model_type == "classifier":
                     model = DecisionTreeClassifier(max_depth=None, min_samples_split=5, min_samples_leaf=2,
@@ -783,7 +834,8 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
                     dir_path = extract_model_path(model_type, k_fold_number, include_distance_feature,
                                                   include_sequence_features, balanced, trans_type, trans_all_fold,
                                                   trans_only_positive, exclude_targets_without_positives,
-                                                  i + skip_num_folds, path_prefix, enc)
+                                                  i + skip_num_folds, path_prefix, enc,
+                                                  model_backend=model_backend)
 
                     # Append tuned/early-stopping suffix (keeps naming consistent)
                     #dir_path = dir_path.replace(".json", "_tuned_early_stopping.json")

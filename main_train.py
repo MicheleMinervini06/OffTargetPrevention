@@ -102,7 +102,7 @@ def regular_train_models(
     n_trees=1000, trans_type="ln_x_plus_one_trans", trans_all_fold=False, trans_only_positive=False,
     exclude_targets_without_positives=False, exclude_on_targets=False, k_fold_number=10, data_type="CHANGEseq",
     xgb_model=None, transfer_learning_type="add", exclude_targets_with_rhampseq_exp=False, save_model=True,
-    save_root_folder="new_models", encoding="NPM"):
+    save_root_folder="new_models", encoding="NPM", model_backend="xgboost"):
     """
     Function for training the models. This performs k-fold training.
     :param models_options: tuple. A tuple with the model types to train. support these options:
@@ -140,8 +140,18 @@ def regular_train_models(
         Default: False
     :param save_model: bool. Save the models if True
     :param encoding: str. The encoding type. Options : "NPM" or "OneHot" Default: "NPM"
+    :param model_backend: str. Model backend used for training. Options: "xgboost" or "catboost".
+        Default: "xgboost"
     :return: None
     """
+    model_backend = model_backend.lower() if isinstance(model_backend, str) else model_backend
+    if model_backend == "xgb":
+        model_backend = "xgboost"
+    if model_backend not in ("xgboost", "catboost"):
+        raise ValueError("model_backend must be either 'xgboost' or 'catboost'")
+    if model_backend != "xgboost" and xgb_model is not None:
+        raise ValueError("xgb_model transfer learning is currently supported only with model_backend='xgboost'")
+
     nucleotides_to_position_mapping = create_nucleotides_to_position_mapping(encoding=encoding)
     targets, positive_df, negative_df = load_train_datasets(union_model, data_type, exclude_on_targets)
     data_type = "CHANGEseq" if union_model else data_type
@@ -181,7 +191,7 @@ def regular_train_models(
                       trans_all_fold=trans_all_fold, trans_only_positive=trans_only_positive,
                       exclude_targets_without_positives=exclude_targets_without_positives, path_prefix=path_prefix,
                       xgb_model=xgb_model, transfer_learning_type=transfer_learning_type, save_model=save_model,
-                      n_trees=n_trees, encoding=encoding)
+                                            n_trees=n_trees, encoding=encoding, model_backend=model_backend)
 
 
 def incremental_pretrain_base_models(models_options=("regression_with_negatives", "classifier"),

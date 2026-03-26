@@ -540,7 +540,7 @@ def prefix_and_suffix_path(model_type, k_fold_number, include_distance_feature, 
 
 def extract_model_path(model_type, k_fold_number, include_distance_feature, include_sequence_features,
                        balanced, trans_type, trans_all_fold, trans_only_positive, exclude_targets_without_positives,
-                       fold_index, path_prefix, encoding="NPM"):
+                       fold_index, path_prefix, encoding="NPM", model_backend=None):
     """
     extract model path
     """
@@ -548,8 +548,18 @@ def extract_model_path(model_type, k_fold_number, include_distance_feature, incl
                                                  include_sequence_features, balanced, trans_type, trans_all_fold,
                                                  trans_only_positive, exclude_targets_without_positives, path_prefix,
                                                  encoding)
-    # Choose model label based on backend only (avoid duplicating encoding)
-    model_label = "catboost" if encoding == "CatBoost" else "xgb"
+    # Keep backward compatibility: infer backend from encoding when not explicitly provided.
+    backend = model_backend.lower() if isinstance(model_backend, str) else None
+    if backend == "xgb":
+        backend = "xgboost"
+    if backend is None:
+        backend = "catboost" if encoding == "CatBoost" else "xgboost"
+    if backend == "catboost":
+        model_label = "catboost"
+    elif backend == "xgboost":
+        model_label = "xgb"
+    else:
+        model_label = backend
     dir_path = general_utilities.FILES_DIR + "models_" + \
                str(k_fold_number) + "fold/" + path_prefix + model_type + \
                "_" + model_label + "_model_fold_" + str(fold_index) + suffix + ".json"
@@ -560,7 +570,7 @@ def extract_model_path(model_type, k_fold_number, include_distance_feature, incl
 def extract_model_results_path(model_type, data_type, k_fold_number, include_distance_feature,
                                include_sequence_features, balanced, trans_type, trans_all_fold, trans_only_positive,
                                exclude_targets_without_positives, evaluate_only_distance, suffix_add, path_prefix,
-                               encoding):
+                               encoding, model_backend=None):
     """
     extract model results path
     """
@@ -570,8 +580,17 @@ def extract_model_results_path(model_type, data_type, k_fold_number, include_dis
                                                  encoding)
     suffix = suffix + ("" if evaluate_only_distance is None else "_distance_" + str(evaluate_only_distance))
     suffix = suffix + suffix_add
-    # Choose model label based on backend only (avoid duplicating encoding)
-    model_label = "catboost" if encoding == "CatBoost" else "xgb"
+    backend = model_backend.lower() if isinstance(model_backend, str) else None
+    if backend == "xgb":
+        backend = "xgboost"
+    if backend is None:
+        backend = "catboost" if encoding == "CatBoost" else "xgboost"
+    if backend == "catboost":
+        model_label = "catboost"
+    elif backend == "xgboost":
+        model_label = "xgb"
+    else:
+        model_label = backend
     dir_path = general_utilities.FILES_DIR + "models_" + str(k_fold_number) + \
                "fold/" + path_prefix + data_type + "_" + model_type + \
                "_results_" + model_label + "_model_all_" + str(k_fold_number) + "_folds" + suffix + ".csv"
