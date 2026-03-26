@@ -812,12 +812,23 @@ def main():
     #     k_fold_number=10, data_type="CHANGEseq",
     #     encoding="bulges")
 
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="MM") 
+
+    # ==================================================================================================
+    # 
+    # Trainig model using catboost and different encodings
     regular_train_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True, False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_type="CHANGEseq",
-        encoding="MM")            
+        encoding="OneHot", model_backend="catboost")
+           
 
 if __name__ == '__main__':
     main()

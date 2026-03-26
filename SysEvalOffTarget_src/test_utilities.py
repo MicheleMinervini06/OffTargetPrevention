@@ -21,6 +21,22 @@ from SysEvalOffTarget_src.utilities import create_fold_sets, build_sequence_feat
 random.seed(general_utilities.SEED)
 
 
+def normalize_model_backend(model_backend=None, use_xgboost=True):
+    """
+    Normalize backend selection while preserving backward compatibility.
+    """
+    if model_backend is None:
+        model_backend = "xgboost" if use_xgboost else "decision_tree"
+    if not isinstance(model_backend, str):
+        raise ValueError("model_backend must be a string")
+    model_backend = model_backend.lower()
+    if model_backend == "xgb":
+        model_backend = "xgboost"
+    if model_backend not in ("xgboost", "catboost", "decision_tree"):
+        raise ValueError("model_backend must be one of: 'xgboost', 'catboost', 'decision_tree'")
+    return model_backend
+
+
 def score_function_classifier(y_test, y_pred, y_proba):
     """
     compute scores for classification model
@@ -97,36 +113,32 @@ def load_fold_dataset(data_type, target_fold, targets, positive_df, negative_df,
 
 def load_model(model_type, k_fold_number, fold_index, gpu, trans_type, balanced,
                include_distance_feature, include_sequence_features, path_prefix,
-               trans_all_fold, trans_only_positive, exclude_targets_without_positives, encoding):
+               trans_all_fold, trans_only_positive, exclude_targets_without_positives, encoding,
+               model_backend=None, use_xgboost=True):
     """
     load model
     """
-    cat_feature_indices = []
+    model_backend = normalize_model_backend(model_backend, use_xgboost=use_xgboost)
+    cat_feature_indices = [i for i in range(0, 23)] if encoding == "CatBoost" and include_sequence_features else []
 
     if model_type == "classifier":
-        model = xgb.XGBClassifier()
-        if encoding == "CatBoost":
-            cat_feature_indices = [i for i in range(0,23)]
-            model = CatBoostClassifier(cat_features=cat_feature_indices)
+        model = CatBoostClassifier(cat_features=cat_feature_indices) if model_backend == "catboost" else xgb.XGBClassifier()
     else:
-        model = xgb.XGBRegressor()
-        if encoding == "CatBoost":
-            cat_feature_indices = [i for i in range(0,23)]
-            model = CatBoostRegressor(cat_features=cat_feature_indices)
+        model = CatBoostRegressor(cat_features=cat_feature_indices) if model_backend == "catboost" else xgb.XGBRegressor()
 
     # speedup prediction using GPU
-    if gpu and encoding == "CatBoost":
+    if gpu and model_backend == "catboost":
         model.set_params(**{'device': 'cuda'})
 
     dir_path = extract_model_path(model_type, k_fold_number, include_distance_feature,
                                   include_sequence_features, balanced, trans_type, trans_all_fold,
                                   trans_only_positive, exclude_targets_without_positives,
-                                  fold_index, path_prefix, encoding)
+                                  fold_index, path_prefix, encoding, model_backend=model_backend)
 
     # If the new naming (model_label == backend only) didn't exist, try legacy naming
     # (model_label included encoding, e.g. xgb_OneHot) for backward compatibility
     if not Path(dir_path).exists():
-        backend_label = "catboost" if encoding == "CatBoost" else "xgb"
+        backend_label = "catboost" if model_backend == "catboost" else "xgb"
         legacy_label = backend_label + "_" + encoding
         legacy_dir_path = dir_path.replace(f"_{backend_label}_", f"_{legacy_label}_")
         if Path(legacy_dir_path).exists():
@@ -144,7 +156,7 @@ def load_model(model_type, k_fold_number, fold_index, gpu, trans_type, balanced,
     if not Path(dir_path).exists():
         raise FileNotFoundError(f"Model file not found: {dir_path}")
 
-    if encoding == "CatBoost":
+    if model_backend == "catboost":
         model.load_model(dir_path, format='json')
     else:
         try:
@@ -170,7 +182,7 @@ def model_folds_predictions(positive_df, negative_df, targets, nucleotides_to_po
                             trans_only_positive=False, exclude_targets_without_positives=False,
                             evaluate_only_distance=None, add_to_results_table=False,
                             results_table_path="files/Tables", gpu=True, suffix_add="", path_prefix="", save_results=False,
-                            encoding="NPM", use_xgboost=False):
+                            encoding="NPM", use_xgboost=False, model_backend=None):
     """
     split targets to fold (if needed) and make predictions
     assumption: if results_table_path is not None, then it has the same format and order as
@@ -190,6 +202,8 @@ def model_folds_predictions(positive_df, negative_df, targets, nucleotides_to_po
                                               balanced, trans_type, trans_all_fold, trans_only_positive,
                                               exclude_targets_without_positives)
 
+    model_backend = normalize_model_backend(model_backend, use_xgboost=use_xgboost)
+
     # create the predictions df and inset the predictions of the fold models
     predictions_dfs = [pd.DataFrame(), pd.DataFrame()]
     target_folds_list = np.array_split(targets, k_fold_number)
@@ -206,7 +220,7 @@ def model_folds_predictions(positive_df, negative_df, targets, nucleotides_to_po
             model = load_model(model_type, k_fold_number, i, gpu, trans_type, balanced,
                                include_distance_feature, include_sequence_features, path_prefix,
                                trans_all_fold, trans_only_positive, exclude_targets_without_positives,
-                               encoding=encoding)
+                               encoding=encoding, model_backend=model_backend, use_xgboost=use_xgboost)
         except FileNotFoundError:
             # Fallback: try legacy decision-tree pickles
             if model_type == "classifier":
@@ -489,7 +503,7 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                include_sequence_features=True, balanced=True, trans_type="ln_x_plus_one_trans",
                trans_all_fold=False, trans_only_positive=False, exclude_targets_without_positives=False,
                evaluate_only_distance=None, gpu=True, suffix_add="", models_path_prefix="",
-               results_path_prefix="", encoding="NPM", use_xgboost=True):
+               results_path_prefix="", encoding="NPM", use_xgboost=True, model_backend=None):
     """
     the test function
     """
@@ -499,6 +513,8 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                                               exclude_targets_without_positives)
     # create the scores results dataframe
     results_df = create_scores_dataframe(model_type)
+
+    model_backend = normalize_model_backend(model_backend, use_xgboost=use_xgboost)
 
     predictions_positive_df, predictions_negative_df, predictions_df = \
         model_folds_predictions(positive_df, negative_df, targets, nucleotides_to_position_mapping,
@@ -510,7 +526,8 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
                                 exclude_targets_without_positives=exclude_targets_without_positives,
                                 evaluate_only_distance=evaluate_only_distance,
                                 add_to_results_table=True, results_table_path=None, gpu=gpu, save_results=False,
-                                path_prefix=models_path_prefix, encoding=encoding, use_xgboost=use_xgboost)
+                                path_prefix=models_path_prefix, encoding=encoding, use_xgboost=use_xgboost,
+                                model_backend=model_backend)
 
     print("Targets:", targets)
 
@@ -552,7 +569,8 @@ def evaluation(positive_df, negative_df, targets, nucleotides_to_position_mappin
     dir_path = extract_model_results_path(model_type, data_type, k_fold_number, include_distance_feature,
                                           include_sequence_features, balanced, trans_type, trans_all_fold,
                                           trans_only_positive, exclude_targets_without_positives,
-                                          evaluate_only_distance, suffix_add, results_path_prefix, encoding)
+                                          evaluate_only_distance, suffix_add, results_path_prefix, encoding,
+                                          model_backend=model_backend)
 
     # Save results under: files/models_<k>fold/new_models/<data_type>/<include_on_targets>/results/<encoding>/
     filename = os.path.basename(dir_path)
