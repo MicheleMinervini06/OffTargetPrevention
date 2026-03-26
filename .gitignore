@@ -37,6 +37,14 @@ evaluate_by_folds_guide_seq- final.ipynb
 incremetal_folds.ipynb
 trans_comp.ipynb
 
+cache/
 
 # new ignores (sort them)
+
+# best models file
+best*
+decision_tree*
+
+#catboost info
+catboost_info/
 

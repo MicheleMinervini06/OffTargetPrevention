@@ -19,9 +19,9 @@ def load_order_sg_rnas(data_type='CHANGE'):
     """
     data_type = 'CHANGE' if data_type.lower() in ('changeseq', 'change-seq', 'change_seq') else data_type
     data_type = 'GUIDE' if data_type.lower() in ('guideseq', 'guide-seq', 'guide_seq') else data_type
-    sg_rnas_s = pd.read_csv(general_utilities.DATASETS_PATH+data_type+'-seq_sgRNAs_ordering.csv',
-                            header=None, squeeze=True)
-    return list(sg_rnas_s)
+    sg_rnas_s = pd.read_csv(general_utilities.DATASETS_PATH + data_type + '-seq_sgRNAs_ordering.csv', header=None)
+    # Modificata la conversione del dataframe in lista
+    return sg_rnas_s.iloc[:, 0].tolist()
 
 
 def order_sg_rnas(data_type='CHANGE'):
@@ -43,84 +43,375 @@ def order_sg_rnas(data_type='CHANGE'):
     sg_rnas_s = pd.Series(sg_rnas)
     # to csv - you can read this to Series using -
     # pd.read_csv("file_name.csv", header=None, squeeze=True)
-    sg_rnas_s.to_csv(general_utilities.DATASETS_PATH+data_type+'-seq_sgRNAs_ordering.csv',
+    sg_rnas_s.to_csv(general_utilities.DATASETS_PATH + data_type + '-seq_sgRNAs_ordering.csv',
                      header=False, index=False)
 
     return sg_rnas
 
 
-def create_nucleotides_to_position_mapping():
+def create_nucleotides_to_position_mapping(encoding="NPM"):
     """
     Return the nucleotides to position mapping
+    encoding: the encoding type, automatically includes bulges if encoding='bulges'
     """
-    # matrix positions for ('A','A'), ('A','C'),...
-    # tuples of ('A','A'), ('A','C'),...
-    nucleotides_product = list(itertools.product(*(['ACGT'] * 2)))
-    # tuples of (0,0), (0,1), ...
-    position_product = [(int(x[0]), int(x[1]))
-                        for x in list(itertools.product(*(['0123'] * 2)))]
-    nucleotides_to_position_mapping = dict(
-        zip(nucleotides_product, position_product))
+    if encoding == "bulges":
+        # matrix positions for ('A','A'), ('A','C'),..., ('A','-'),...
+        # tuples of ('A','A'), ('A','C'),..., including bulges '-'
+        nucleotides_product = list(itertools.product(*(['ACGT-'] * 2)))
+        # tuples of (0,0), (0,1), ..., (0,4), ..., (4,0), ...
+        position_product = [(int(x[0]), int(x[1]))
+                            for x in list(itertools.product(*(['01234'] * 2)))]
+        nucleotides_to_position_mapping = dict(
+            zip(nucleotides_product, position_product))
 
-    # tuples of ('N','A'), ('N','C'),...
-    n_mapping_nucleotides_list = [('N', char) for char in ['A', 'C', 'G', 'T']]
-    # list of tuples positions corresponding to ('A','A'), ('C','C'), ...
-    n_mapping_position_list = [nucleotides_to_position_mapping[(char, char)]
-                               for char in ['A', 'C', 'G', 'T']]
+        # tuples of ('N','A'), ('N','C'),..., ('N','-')
+        n_mapping_nucleotides_list = [('N', char) for char in ['A', 'C', 'G', 'T', '-']]
+        # list of tuples positions corresponding to ('A','A'), ('C','C'), ..., ('-','-')
+        n_mapping_position_list = [nucleotides_to_position_mapping[(char, char)]
+                                   for char in ['A', 'C', 'G', 'T', '-']]
 
-    nucleotides_to_position_mapping.update(
-        dict(zip(n_mapping_nucleotides_list, n_mapping_position_list)))
+        nucleotides_to_position_mapping.update(
+            dict(zip(n_mapping_nucleotides_list, n_mapping_position_list)))
 
-    # tuples of ('A','N'), ('C','N'),...
-    n_mapping_nucleotides_list = [(char, 'N') for char in ['A', 'C', 'G', 'T']]
-    # list of tuples positions corresponding to ('A','A'), ('C','C'), ...
-    n_mapping_position_list = [nucleotides_to_position_mapping[(char, char)]
-                               for char in ['A', 'C', 'G', 'T']]
-    nucleotides_to_position_mapping.update(
-        dict(zip(n_mapping_nucleotides_list, n_mapping_position_list)))
+        # tuples of ('A','N'), ('C','N'),..., ('-','N')
+        n_mapping_nucleotides_list = [(char, 'N') for char in ['A', 'C', 'G', 'T', '-']]
+        # list of tuples positions corresponding to ('A','A'), ('C','C'), ..., ('-','-')
+        n_mapping_position_list = [nucleotides_to_position_mapping[(char, char)]
+                                   for char in ['A', 'C', 'G', 'T', '-']]
+        nucleotides_to_position_mapping.update(
+            dict(zip(n_mapping_nucleotides_list, n_mapping_position_list)))
+    else:
+        # Original mapping without bulges
+        # matrix positions for ('A','A'), ('A','C'),...
+        # tuples of ('A','A'), ('A','C'),...
+        nucleotides_product = list(itertools.product(*(['ACGT'] * 2)))
+        # tuples of (0,0), (0,1), ...
+        position_product = [(int(x[0]), int(x[1]))
+                            for x in list(itertools.product(*(['0123'] * 2)))]
+        nucleotides_to_position_mapping = dict(
+            zip(nucleotides_product, position_product))
+
+        # tuples of ('N','A'), ('N','C'),...
+        n_mapping_nucleotides_list = [('N', char) for char in ['A', 'C', 'G', 'T']]
+        # list of tuples positions corresponding to ('A','A'), ('C','C'), ...
+        n_mapping_position_list = [nucleotides_to_position_mapping[(char, char)]
+                                   for char in ['A', 'C', 'G', 'T']]
+
+        nucleotides_to_position_mapping.update(
+            dict(zip(n_mapping_nucleotides_list, n_mapping_position_list)))
+
+        # tuples of ('A','N'), ('C','N'),...
+        n_mapping_nucleotides_list = [(char, 'N') for char in ['A', 'C', 'G', 'T']]
+        # list of tuples positions corresponding to ('A','A'), ('C','C'), ...
+        n_mapping_position_list = [nucleotides_to_position_mapping[(char, char)]
+                                   for char in ['A', 'C', 'G', 'T']]
+        nucleotides_to_position_mapping.update(
+            dict(zip(n_mapping_nucleotides_list, n_mapping_position_list)))
 
     return nucleotides_to_position_mapping
 
 
 def build_sequence_features(dataset_df, nucleotides_to_position_mapping,
                             include_distance_feature=False,
-                            include_sequence_features=True):
-    """
-    Build sequence features using the nucleotides to position mapping
-    """
-    if (not include_distance_feature) and (not include_sequence_features):
-        raise ValueError(
-            'include_distance_feature and include_sequence_features can not be both False')
+                            include_sequence_features=True,
+                            encoding="NPM"):
+    
+    if encoding == 'bulges':
+        """
+        Build sequence features using the nucleotides to position mapping, including bulges
+        """
+        if (not include_distance_feature) and (not include_sequence_features):
+            raise ValueError(
+                'include_distance_feature and include_sequence_features can not be both False')
 
-    # convert dataset_df["target"] -3 position to 'N'
-    print("Converting the [-3] positions in each sgRNA sequence to 'N'")
-    dataset_df['target'] = dataset_df['target'].apply(lambda s: s[:-3] + 'N' + s[-2:])
+        # convert dataset_df["target"] -3 position to 'N'
+        print("Converting the [-3] positions in each sgRNA sequence to 'N'")
+        dataset_df.loc[:, 'target'] = dataset_df['target'].apply(lambda s: s[:-3] + 'N' + s[-2:])
 
-    if include_sequence_features:
-        final_result = np.zeros((len(dataset_df), (23*16)+1),
-                                dtype=np.int8) if include_distance_feature else \
-            np.zeros((len(dataset_df), 23*16), dtype=np.int8)
-    else:
-        final_result = np.zeros((len(dataset_df), 1), dtype=np.int8)
-    for i, (seq1, seq2) in enumerate(zip(dataset_df["target"], dataset_df["offtarget_sequence"])):
         if include_sequence_features:
-            intersection_matrices = np.zeros((23, 4, 4), dtype=np.int8)
-            for j in range(23):
-                matrix_positions = nucleotides_to_position_mapping[(
-                    seq1[j], seq2[j])]
-                intersection_matrices[j, matrix_positions[0],
-                                      matrix_positions[1]] = 1
+            final_result = np.zeros((len(dataset_df), (23 * 20) + 1),  # 23 positions * (4x5) = 20 features per position
+                                    dtype=np.int8) if include_distance_feature else \
+                np.zeros((len(dataset_df), 23 * 20), dtype=np.int8)
         else:
-            intersection_matrices = None
+            final_result = np.zeros((len(dataset_df), 1), dtype=np.int8)
+        
+        for i, (seq1, seq2) in enumerate(zip(dataset_df["target"], dataset_df["offtarget_sequence"])):
+            if include_sequence_features:
+                intersection_matrices = np.zeros((23, 4, 5), dtype=np.int8)  # Adjusted to 4x5 for bulge support
+                for j in range(23):
+                    matrix_positions = nucleotides_to_position_mapping[(
+                        seq1[j], seq2[j])]
+                    intersection_matrices[j, matrix_positions[0],
+                    matrix_positions[1]] = 1
+            else:
+                intersection_matrices = None
+
+            if include_distance_feature:
+                if include_sequence_features:
+                    final_result[i, :-1] = intersection_matrices.flatten()
+                final_result[i, -1] = dataset_df["distance"].iloc[i]
+            else:
+                final_result[i, :] = intersection_matrices.flatten()
+
+        return final_result
+    
+    if encoding == 'CatBoost':
+        print("Preparazione feature per CatBoost con combinazione pairwise nucleotidi...")
+        
+        if not include_sequence_features and not include_distance_feature:
+            raise ValueError("Almeno una tra include_sequence_features e include_distance_feature deve essere True.")
+
+        # Pre-alloca la lista per le feature
+        features_list = []
+
+        # 1. Feature di sequenza (categoriche) - combinazione pairwise
+        if include_sequence_features:
+            if 'target' not in dataset_df.columns or 'offtarget_sequence' not in dataset_df.columns:
+                raise ValueError("Le colonne 'target' e 'offtarget_sequence' sono richieste.")
+            
+            # Estrai le colonne una volta sola
+            target_seqs = dataset_df['target'].values
+            offtarget_seqs = dataset_df['offtarget_sequence'].values
+            
+            # Pre-calcola la lunghezza minima per evitare calcoli ripetuti
+            seq_length = min(len(target_seqs[0]), len(offtarget_seqs[0]))
+            
+            # Usa list comprehension per efficienza
+            pairwise_combinations = [
+                [target_seq[i] + offtarget_seq[i] for i in range(seq_length)]
+                for target_seq, offtarget_seq in zip(target_seqs, offtarget_seqs)
+            ]
+            
+            categorical_features = np.array(pairwise_combinations, dtype=object)
+            features_list.append(categorical_features)
+
+        # 2. Feature di distanza (numerica)
+        if include_distance_feature:
+            if 'distance' not in dataset_df.columns:
+                raise ValueError("La colonna 'distance' è richiesta ma non è presente.")
+            
+            # Accesso diretto ai valori senza reshape
+            numeric_features = dataset_df['distance'].values[:, np.newaxis].astype(object)
+            features_list.append(numeric_features)
+
+        # 3. Combina le feature in un'unica matrice
+        if len(features_list) > 1:
+            final_result = np.hstack(features_list)
+        else:
+            final_result = features_list[0]
+            
+        return final_result
+    
+    if encoding == "NPM":
+        """
+        Build sequence features using the nucleotides to position mapping
+        """
+        if (not include_distance_feature) and (not include_sequence_features):
+            raise ValueError(
+                'include_distance_feature and include_sequence_features can not be both False')
+
+        # convert dataset_df["target"] -3 position to 'N'
+        print("Converting the [-3] positions in each sgRNA sequence to 'N'")
+        dataset_df.loc[:, 'target'] = dataset_df['target'].apply(lambda s: s[:-3] + 'N' + s[-2:])
+
+        if include_sequence_features:
+            final_result = np.zeros((len(dataset_df), (23 * 16) + 1),
+                                    dtype=np.int8) if include_distance_feature else \
+                np.zeros((len(dataset_df), 23 * 16), dtype=np.int8)
+        else:
+            final_result = np.zeros((len(dataset_df), 1), dtype=np.int8)
+        for i, (seq1, seq2) in enumerate(zip(dataset_df["target"], dataset_df["offtarget_sequence"])):
+            if include_sequence_features:
+                intersection_matrices = np.zeros((23, 4, 4), dtype=np.int8)
+                for j in range(23):
+                    matrix_positions = nucleotides_to_position_mapping[(
+                        seq1[j], seq2[j])]
+                    intersection_matrices[j, matrix_positions[0],
+                    matrix_positions[1]] = 1
+            else:
+                intersection_matrices = None
+
+            if include_distance_feature:
+                if include_sequence_features:
+                    final_result[i, :-1] = intersection_matrices.flatten()
+                final_result[i, -1] = dataset_df["distance"].iloc[i]
+            else:
+                final_result[i, :] = intersection_matrices.flatten()
+
+        return final_result
+
+    """Including the k-mer encoding"""
+    if encoding == "kmer":
+        if (not include_distance_feature) and (not include_sequence_features):
+            raise ValueError(
+                'include_distance_feature and include_sequence_features can not be both False')
+
+        def get_kmers(sequence, k):
+            """Convert a sequence into a list of overlapping k-mers"""
+            return [sequence[i:i + k] for i in range(len(sequence) - k + 1)]
+
+        def compare_kmers(kmers1, kmers2):
+            """Compare two k-mer lists and return a binary vector representing match/mismatch"""
+            binary_encoding = []
+            for kmer1, kmer2 in zip(kmers1, kmers2):
+                binary_kmer = ''.join(['1' if nuc1 == nuc2 else '0' for nuc1, nuc2 in zip(kmer1, kmer2)])
+                binary_encoding.append(binary_kmer)
+            return ''.join(binary_encoding)
+
+        k = 3  # k-mer length
+        n_kmer_features = (23 - k + 1) * k  # = 63 with k=3
+        if include_sequence_features:
+            n_cols = n_kmer_features + 1 if include_distance_feature else n_kmer_features
+        else:
+            n_cols = 1  # distance only
+        final_result = np.zeros((len(dataset_df), n_cols), dtype=np.int8)
+
+        for i, (seq1, seq2) in enumerate(zip(dataset_df["target"], dataset_df["offtarget_sequence"])):
+            if include_sequence_features:
+                kmers_seq1 = get_kmers(seq1, k)
+                kmers_seq2 = get_kmers(seq2, k)
+                binary_encoding = compare_kmers(kmers_seq1, kmers_seq2)
+                encoded_array = np.array([int(b) for b in binary_encoding], dtype=np.int8)
+
+            if include_distance_feature:
+                if include_sequence_features:
+                    final_result[i, :-1] = encoded_array
+                final_result[i, -1] = dataset_df["distance"].iloc[i]
+            else:
+                final_result[i, :] = encoded_array
+
+        return final_result
+
+    """INcluding the Label Encoding Pairwise"""
+    if encoding == 'LabelEncodingPairwise':
+        # Definisci la mappatura delle coppie di nucleotidi
+        nucleotide_pairs_mapping = {
+            ('A', 'A'): 0, ('A', 'C'): 1, ('A', 'G'): 2, ('A', 'T'): 3,
+            ('C', 'A'): 4, ('C', 'C'): 5, ('C', 'G'): 6, ('C', 'T'): 7,
+            ('G', 'A'): 8, ('G', 'C'): 9, ('G', 'G'): 10, ('G', 'T'): 11,
+            ('T', 'A'): 12, ('T', 'C'): 13, ('T', 'G'): 14, ('T', 'T'): 15
+        }
+
+        # Funzione per mappare le coppie di nucleotidi con il trattamento di 'N'
+        def pairwise_sequence_encoding(seq1, seq2):
+            encoded_seq = []
+            for n1, n2 in zip(seq1, seq2):
+                if n1 == 'N':
+                    n1 = n2  # Se n1 è 'N', trattalo come n2
+                elif n2 == 'N':
+                    n2 = n1  # Se n2 è 'N', trattalo come n1
+                encoded_seq.append(nucleotide_pairs_mapping[(n1, n2)])
+            return encoded_seq
+
+        # Applica il pairwise encoding alle sequenze target e off-target
+        pairwise_encoded = np.array([pairwise_sequence_encoding(seq1, seq2)
+                                     for seq1, seq2 in zip(dataset_df['target'], dataset_df['offtarget_sequence'])])
+
+        # Aggiungi opzionalmente la feature di distanza
+        if include_distance_feature:
+            flattened_results = np.hstack([pairwise_encoded, dataset_df['distance'].values[:, np.newaxis]])
+        else:
+            flattened_results = pairwise_encoded
+
+        return flattened_results
+    
+    if encoding == "MM":
+        # Match-Mismatch encoding: 1 for mismatch, 0 for match, -1 for unknown/'N'
+        if (not include_distance_feature) and (not include_sequence_features):
+            raise ValueError(
+                'include_distance_feature and include_sequence_features can not be both False')
+
+        match_mismatch_result = None
+        if include_sequence_features:
+            match_mismatch_result = np.zeros((len(dataset_df), 23), dtype=np.int8)  # 23 positions
+            for i, (seq1, seq2) in enumerate(zip(dataset_df["target"], dataset_df["offtarget_sequence"])):
+                for j in range(23):
+                    if seq1[j] == 'N' or seq2[j] == 'N':
+                        match_mismatch_result[i, j] = -1  # -1 indicates unknown/ignored
+                    else:
+                        # 1 if mismatch, 0 if match
+                        match_mismatch_result[i, j] = 1 if seq1[j] != seq2[j] else 0
+
+        # build final_result depending on requested features
+        if include_distance_feature:
+            distance_col = dataset_df['distance'].values[:, np.newaxis]
+            if match_mismatch_result is not None:
+                final_result = np.hstack([match_mismatch_result, distance_col])
+            else:
+                # sequence features not requested, return distance-only array
+                final_result = distance_col.astype(np.int8)
+        else:
+            # distance not requested
+            final_result = match_mismatch_result
+
+        return final_result
+
+
+
+    if encoding == 'OneHot' or encoding == 'OneHot5Channel' or encoding == 'OneHotVstack':
+        # Define the mapping from nucleotides to one-hot encoding using a numpy array for direct indexing
+        nucleotide_mapping = np.array([[1, 0, 0, 0],  # A 0
+                                       [0, 1, 0, 0],  # C 1
+                                       [0, 0, 1, 0],  # G 2
+                                       [0, 0, 0, 1],  # T 3
+                                       [0, 0, 0, 0]])  # N 4
+
+        # Create a mapper from nucleotide characters to indices [A, C, G, T, N]
+        char_to_index = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4}
+
+        # Function to convert sequence string to index array
+        def sequence_to_index_array(sequence):
+            if sequence is None:
+                return np.array([], dtype=int)
+            return np.array([char_to_index.get(nuc, 4) for nuc in sequence], dtype=int)
+
+        # Convert sequences to indices
+        target_indices = dataset_df['target'].apply(sequence_to_index_array)
+        offtarget_indices = dataset_df['offtarget_sequence'].apply(sequence_to_index_array)
+
+        # Convert indices to one-hot encoded form
+        target_encoded = np.array([nucleotide_mapping[indices] for indices in target_indices])
+        offtarget_encoded = np.array([nucleotide_mapping[indices] for indices in offtarget_indices])
+
+        if encoding == 'OneHotVstack':
+            # Stack the target and offtarget sequences vertically
+            result = np.concatenate((target_encoded, offtarget_encoded), axis=-1)
+        else:
+            # Perform a logical OR operation
+            result = np.logical_or(target_encoded, offtarget_encoded).astype(int)
+
+        if encoding == 'OneHot5Channel':
+            # Determine the direction for each position
+            direction_indicators = []
+            for t_idx, o_idx in zip(target_indices, offtarget_indices):
+                direction_indicator = np.zeros((len(t_idx), 1), dtype=int)  # 5th position for the direction
+                for i, (t, o) in enumerate(zip(t_idx, o_idx)):
+                    if t != 4 and o != 4:  # Ignore 'N' characters
+                        if t <= o:  # If they match
+                            # Determine the order of the nucleotides
+                            direction_indicator[i, 0] = 0
+                        else:
+                            direction_indicator[i, 0] = 1
+                direction_indicators.append(direction_indicator)
+
+            direction_indicators = np.array(direction_indicators)
+
+            # Append the direction indicators to the OR result
+            result = np.concatenate((result, direction_indicators), axis=-1)
+
+        # Flatten the results and optionally include the distance feature
+        flattened_result = result.reshape(result.shape[0], -1)  # Vettorizzazione
 
         if include_distance_feature:
-            if include_sequence_features:
-                final_result[i, :-1] = intersection_matrices.flatten()
-            final_result[i, -1] = dataset_df["distance"].iloc[i]
+            flattened_results = np.hstack([flattened_result, dataset_df['distance'].values[:, np.newaxis]])
         else:
-            final_result[i, :] = intersection_matrices.flatten()
+            flattened_results = flattened_result
 
-    return final_result
+        # Convert the results into a NumPy array with dtype set for memory efficiency
+        final_result = np.array(flattened_results, dtype=np.int8)
+
+        return final_result
+
 
 ##########################################################################
 
@@ -152,8 +443,8 @@ def create_fold_sets(target_fold, targets, positive_df, negative_df,
             if target in test_targets:
                 continue
             negative_indices_train = negative_indices_train + \
-                list(negative_df[(negative_df['target'] == target)].sample(
-                    n=len(positive_df_train[(positive_df_train['target'] == target)])).index)
+                                     list(negative_df[(negative_df['target'] == target)].sample(
+                                         n=len(positive_df_train[(positive_df_train['target'] == target)])).index)
         negative_df_train = negative_df.loc[negative_indices_train]
 
         # obtain the negative samples for test (for test take all negatives not in the trains set)
@@ -185,6 +476,8 @@ def build_sampleweight(y_values):
         vec[y_values == values_class] = np.sum(
             y_values != values_class) / len(y_values)
     return vec
+
+
 ##########################################################################
 
 
@@ -208,18 +501,34 @@ def extract_model_name(model_type, include_distance_feature, include_sequence_fe
         model_name += "-balanced" if balanced else ""
         model_name += "-foldTrans" if trans_all_fold else ""
         model_name += "-positiveTrans" if trans_only_positive else ""
-    
+
     return model_name
+
+
 ##########################################################################
 
 
 def prefix_and_suffix_path(model_type, k_fold_number, include_distance_feature, include_sequence_features, balanced,
                            trans_type, trans_all_fold, trans_only_positive, exclude_targets_without_positives,
-                           path_prefix):
+                           path_prefix, encoding="NPM"):
     suffix = "_with_distance" if include_distance_feature else ""
     suffix += "" if include_sequence_features else "_without_sequence_features"
     suffix += ("_without_Kfold" if k_fold_number == 1 else "")
     suffix += ("" if balanced == 1 else "_imbalanced")
+    if encoding == "OneHot":
+        suffix += "_with_OneHotEncoding"
+    elif encoding == "OneHot5Channel":
+        suffix += "_with_OneHotEncoding5Channel"
+    elif encoding == "kmer":
+        suffix += "_with_kmerEncoding"
+    elif encoding == "OneHotVstack":
+        suffix += "_with_OneHotEncodingVstack"
+    elif encoding == "LabelEncodingPairwise":
+        suffix += "_with_LabelEncodingPairwise"
+    elif encoding == "bulges":
+        suffix += "_with_bulgesEncoding"
+    elif encoding == "MM":
+        suffix += "_with_MMEncoding"
     if trans_type != "ln_x_plus_one_trans" and model_type != "classifier":
         suffix += "_" + trans_type
     path_prefix = "trans_only_positive/" + path_prefix if trans_only_positive else path_prefix
@@ -231,36 +540,45 @@ def prefix_and_suffix_path(model_type, k_fold_number, include_distance_feature, 
 
 def extract_model_path(model_type, k_fold_number, include_distance_feature, include_sequence_features,
                        balanced, trans_type, trans_all_fold, trans_only_positive, exclude_targets_without_positives,
-                       fold_index, path_prefix):
+                       fold_index, path_prefix, encoding="NPM"):
     """
     extract model path
     """
     path_prefix, suffix = prefix_and_suffix_path(model_type, k_fold_number, include_distance_feature,
                                                  include_sequence_features, balanced, trans_type, trans_all_fold,
-                                                 trans_only_positive, exclude_targets_without_positives, path_prefix)
+                                                 trans_only_positive, exclude_targets_without_positives, path_prefix,
+                                                 encoding)
+    # Choose model label based on backend only (avoid duplicating encoding)
+    model_label = "catboost" if encoding == "CatBoost" else "xgb"
     dir_path = general_utilities.FILES_DIR + "models_" + \
-        str(k_fold_number) + "fold/" + path_prefix + model_type + \
-        "_xgb_model_fold_" + str(fold_index) + suffix + ".xgb"
+               str(k_fold_number) + "fold/" + path_prefix + model_type + \
+               "_" + model_label + "_model_fold_" + str(fold_index) + suffix + ".json"
 
     return dir_path
 
 
 def extract_model_results_path(model_type, data_type, k_fold_number, include_distance_feature,
                                include_sequence_features, balanced, trans_type, trans_all_fold, trans_only_positive,
-                               exclude_targets_without_positives, evaluate_only_distance, suffix_add, path_prefix):
+                               exclude_targets_without_positives, evaluate_only_distance, suffix_add, path_prefix,
+                               encoding):
     """
     extract model results path
     """
     path_prefix, suffix = prefix_and_suffix_path(model_type, k_fold_number, include_distance_feature,
                                                  include_sequence_features, balanced, trans_type, trans_all_fold,
-                                                 trans_only_positive, exclude_targets_without_positives, path_prefix)
+                                                 trans_only_positive, exclude_targets_without_positives, path_prefix,
+                                                 encoding)
     suffix = suffix + ("" if evaluate_only_distance is None else "_distance_" + str(evaluate_only_distance))
     suffix = suffix + suffix_add
-    dir_path = general_utilities.FILES_DIR + "models_" + str(k_fold_number) +\
-        "fold/" + path_prefix + data_type + "_" + model_type +\
-        "_results_xgb_model_all_" + str(k_fold_number) + "_folds" + suffix + ".csv"
+    # Choose model label based on backend only (avoid duplicating encoding)
+    model_label = "catboost" if encoding == "CatBoost" else "xgb"
+    dir_path = general_utilities.FILES_DIR + "models_" + str(k_fold_number) + \
+               "fold/" + path_prefix + data_type + "_" + model_type + \
+               "_results_" + model_label + "_model_all_" + str(k_fold_number) + "_folds" + suffix + ".csv"
 
     return dir_path
+
+
 ##########################################################################
 
 
@@ -271,7 +589,7 @@ def transformer_generator(data, trans_type):
     data = data.reshape(-1, 1)
     if trans_type == "no_trans":
         # identity transformer
-        transformer = FunctionTransformer()
+        transformer = FunctionTransformer(validate=False)
     elif trans_type == "ln_x_plus_one_trans":
         transformer = FunctionTransformer(func=np.log1p, inverse_func=np.expm1)
     elif trans_type == "ln_x_plus_one_and_max_trans":

@@ -1,0 +1,9 @@
+encoding,CHANGE_best_aupr,CHANGE_best_aupr_model,GUIDE_best_aupr,GUIDE_best_aupr_model,CHANGE_best_pearson,CHANGE_best_pearson_model,GUIDE_best_pearson,GUIDE_best_pearson_model
+LabelEncodingPairwise,0.571864,Classification-seq-dist,0.590227,Classification-seq-dist,0.437938,Regression-seq-dist,0.811477,Classification-seq
+MM,0.390130,Classification-seq,0.596379,Classification-seq,0.371917,Regression-seq-dist,0.527002,Regression-seq-dist
+NPM,0.611174,Classification-seq-dist,0.641412,Regression-seq-dist,0.492763,Regression-seq-dist,0.756203,Regression-seq-dist
+OneHot,0.515073,Classification-seq-dist,0.660912,Classification-seq-dist,0.450380,Regression-seq-dist,0.795657,Regression-seq-dist
+OneHot5Channel,0.563535,Classification-seq-dist,0.607577,Classification-seq-dist,0.471863,Regression-seq-dist,0.810123,Regression-seq-dist
+OneHotVstack,0.478150,Classification-seq-dist,0.586930,Classification-seq-dist,0.474805,Regression-seq-dist,0.813246,Regression-seq-dist
+bulges,0.612018,Classification-seq-dist,0.650745,Regression-seq-dist,0.500148,Regression-seq-dist,0.767165,Regression-seq-dist
+kmer,0.390130,Classification-seq,0.596379,Classification-seq,0.371917,Regression-seq-dist,0.527002,Regression-seq-dist

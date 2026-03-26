@@ -6,21 +6,24 @@
 import random
 import numpy as np
 import pandas as pd
+import os
 from SysEvalOffTarget_src.test_utilities import evaluation, model_folds_predictions
 
 from SysEvalOffTarget_src.utilities import create_nucleotides_to_position_mapping, order_sg_rnas, load_order_sg_rnas
 from SysEvalOffTarget_src import general_utilities
 
+
 random.seed(general_utilities.SEED)
 
 
 def regular_test_models(
-    models_options=("regression_with_negatives", "classifier", "regression_without_negatives"),
-    include_distance_feature_options=(True, False), include_sequence_features_options=(True, False),
-    trans_type="ln_x_plus_one_trans", trans_all_fold=False,
-    trans_only_positive=False, exclude_targets_without_positives=False,
-    train_exclude_on_targets=False, test_exclude_on_targets=False, k_fold_number=10,
-    task="evaluation", data_types=('CHANGEseq', 'GUIDEseq'), intersection=None):
+        models_options=("regression_with_negatives", "classifier", "regression_without_negatives"),
+        include_distance_feature_options=(True, False), include_sequence_features_options=(True, False),
+        trans_type="ln_x_plus_one_trans", trans_all_fold=False,
+        trans_only_positive=False, exclude_targets_without_positives=False,
+        train_exclude_on_targets=False, test_exclude_on_targets=False, k_fold_number=10,
+        task="evaluation", data_types=('CHANGEseq', 'GUIDEseq'), intersection=None,
+        encoding="NPM"):
     """
     Function for testing the models. The corresponding function to regular_train_models.
     This function produces results for the regression and classification models trained only on the CHANGE-seq dataset.
@@ -60,12 +63,13 @@ def regular_test_models(
         intersection dataset of GUIDE-seq and CHANGE-seq. works only with task="evaluation". Options:
         "CHANGE_GUIDE_intersection_by_both" or "CHANGE_GUIDE_intersection_by_GUIDE".
         See prepare_data file for description. Default: None
+    :param encoding: str. encoding type. Options: "NPM" or "OneHot". Default: "NPM"
     :return: None
     """
     if intersection is not None and task == "prediction":
         raise ValueError("prediction task does not support prediction on the intersection")
 
-    nucleotides_to_position_mapping = create_nucleotides_to_position_mapping()
+    nucleotides_to_position_mapping = create_nucleotides_to_position_mapping(encoding=encoding)
     # test CHANGE-seq model
     try:
         targets_change_seq = load_order_sg_rnas()
@@ -86,15 +90,20 @@ def regular_test_models(
         # the function supports evaluation of the models trained only on the CHANGE-seq dataset
         save_model_dir_path_prefix = 'CHANGEseq/exclude_on_targets/' if \
             train_exclude_on_targets else 'CHANGEseq/include_on_targets/'
+        # base models directory (prefer new_models if present)
+        models_base = general_utilities.FILES_DIR + "models_{}_fold/".format(k_fold_number)
+        if os.path.exists(models_base + "new_models/" + save_model_dir_path_prefix):
+            models_base = models_base + "new_models/"
         # predictions path
-        prediction_results_path = general_utilities.FILES_DIR + "models_{}_fold/".format(k_fold_number) + \
-            save_model_dir_path_prefix
-        prediction_results_path += \
-            'predictions_exclude_on_targets/' if test_exclude_on_targets else 'predictions_include_on_targets/'
+        prediction_results_path = models_base + save_model_dir_path_prefix
+        prediction_results_path += 'predictions_exclude_on_targets/' if test_exclude_on_targets else 'predictions_include_on_targets/'
         prediction_results_path += "{0}_results_all_{1}_folds.csv".format(data_type, k_fold_number)
 
         for model_type in models_options:
             models_path_prefix = save_model_dir_path_prefix + model_type + "/"
+            # if new_models exists for this path, prefer it so tests load newly trained models
+            if os.path.exists(models_base + save_model_dir_path_prefix + model_type + "/"):
+                models_path_prefix = "new_models/" + models_path_prefix
             # evaluation path
             evaluation_results_path_prefix = save_model_dir_path_prefix + model_type + "/"
             evaluation_results_path_prefix += \
@@ -112,15 +121,20 @@ def regular_test_models(
                                    "balanced": False, "trans_type": trans_type,
                                    "trans_all_fold": trans_all_fold,
                                    "trans_only_positive": trans_only_positive,
-                                   "exclude_targets_without_positives": exclude_targets_without_positives}
+                                   "exclude_targets_without_positives": exclude_targets_without_positives,
+                                   "encoding": encoding,
+                                   "use_xgboost": True}
                     if task == "evaluation":
                         call_kwargs.update({"models_path_prefix": models_path_prefix,
                                             "results_path_prefix": evaluation_results_path_prefix})
+                        print("Call args", call_args)
+                        print("Call kwargs", call_kwargs)
                         evaluation(*call_args, **call_kwargs)
                     elif task == "prediction":
                         call_kwargs.update({"add_to_results_table": True,
                                             "results_table_path": prediction_results_path,
-                                            "save_results": True, "path_prefix": models_path_prefix})
+                                            "save_results": True, "path_prefix": models_path_prefix,
+                                            "encoding": encoding})
                         model_folds_predictions(*call_args, **call_kwargs)
                     else:
                         raise ValueError("Invalid task argument value")
@@ -152,23 +166,23 @@ def load_incremental_test_folds_data(test_exclude_on_targets):
 
 
 def incremental_test_evaluate_folds(
-    model_type, positive_df, negative_df, test_targets_fold, trans_type, n_targets,
-    test_exclude_on_targets, include_distance_feature_options, nucleotides_to_position_mapping,
-    tl_or_union_type, evaluation_results_path_prefix, path_prefix, seed, **kwargs):
+        model_type, positive_df, negative_df, test_targets_fold, trans_type, n_targets,
+        test_exclude_on_targets, include_distance_feature_options, nucleotides_to_position_mapping,
+        tl_or_union_type, evaluation_results_path_prefix, path_prefix, seed, **kwargs):
     """
     utility function of incremental_test_models_folds and incremental_union_test_models_folds
     """
     # evaluation path
     evaluation_results_path_prefix += \
         'test_results_exclude_on_targets/' if test_exclude_on_targets else 'test_results_include_on_targets/'
-    evaluation_results_path_prefix += "seed_" + str(seed) + "/" + model_type + "/trained_with_" + str(n_targets+1) + \
+    evaluation_results_path_prefix += "seed_" + str(seed) + "/" + model_type + "/trained_with_" + str(n_targets + 1) + \
                                       "_guides_"
     for include_distance_feature in include_distance_feature_options:
         call_args = (positive_df, negative_df, test_targets_fold, nucleotides_to_position_mapping)
         call_kwargs = {"data_type": "GUIDEseq", "model_type": model_type, "k_fold_number": 1,
-                        "include_distance_feature": include_distance_feature,
-                        "include_sequence_features": True,
-                        "balanced": False, "trans_type": trans_type
+                       "include_distance_feature": include_distance_feature,
+                       "include_sequence_features": True,
+                       "balanced": False, "trans_type": trans_type
                        }
         call_kwargs.update({"models_path_prefix": path_prefix,
                             "results_path_prefix": evaluation_results_path_prefix})
@@ -182,9 +196,9 @@ def incremental_test_evaluate_folds(
 
 
 def incremental_test_models_folds(
-    models_options=("regression_with_negatives", "classifier"), include_distance_feature_options=(True, False),
-    train_exclude_on_targets=False, test_exclude_on_targets=False, trans_type="ln_x_plus_one_trans",
-    transfer_learning_types=(None, "add", "update"), seeds=(i for i in range(1, 11)), **kwargs):
+        models_options=("regression_with_negatives", "classifier"), include_distance_feature_options=(True, False),
+        train_exclude_on_targets=False, test_exclude_on_targets=False, trans_type="ln_x_plus_one_trans",
+        transfer_learning_types=(None, "add", "update"), seeds=(i for i in range(1, 11)), **kwargs):
     """
     Function for testing the models. The corresponding function to incremental_train_models_folds.
     Save the results in the files directory according to the type if the model.
@@ -223,22 +237,22 @@ def incremental_test_models_folds(
                                          save_model_dir_path_prefix
             for transfer_learning_type in transfer_learning_types:
                 type_save_model_dir_path_prefix = save_model_dir_path_prefix + \
-                    "GS_TL_" + transfer_learning_type + '/' if transfer_learning_type is not None else \
+                                                  "GS_TL_" + transfer_learning_type + '/' if transfer_learning_type is not None else \
                     save_model_dir_path_prefix + "GS/"
                 for i in range(len(train_targets)):
                     path_prefix = type_save_model_dir_path_prefix + "seed_" + str(seed) + \
-                                "/trained_with_" + str(i+1) + "_guides_"
+                                  "/trained_with_" + str(i + 1) + "_guides_"
                     for model_type in models_options:
                         incremental_test_evaluate_folds(
                             model_type, positive_df, negative_df, test_targets_fold, trans_type, i,
                             test_exclude_on_targets, include_distance_feature_options, nucleotides_to_position_mapping,
                             transfer_learning_type, type_save_model_dir_path_prefix, path_prefix, seed, **kwargs)
-                            
+
 
 def incremental_union_test_models_folds(
-    models_options=("regression_with_negatives", "classifier"), include_distance_feature_options=(True, False),
-    train_exclude_on_targets=False, test_exclude_on_targets=False, trans_type="ln_x_plus_one_trans",
-    seeds=(i for i in range(1, 11)), n_trees=1000, **kwargs):
+        models_options=("regression_with_negatives", "classifier"), include_distance_feature_options=(True, False),
+        train_exclude_on_targets=False, test_exclude_on_targets=False, trans_type="ln_x_plus_one_trans",
+        seeds=(i for i in range(1, 11)), n_trees=1000, **kwargs):
     """
     Function for testing the models. The corresponding function to incremental_union_train_models_folds.
     Save the results in the files directory according to the type if the model.
@@ -269,7 +283,7 @@ def incremental_union_test_models_folds(
     # GUIDE-seq
     nucleotides_to_position_mapping, positive_df, negative_df, targets, test_target_folds_list = \
         load_incremental_test_folds_data(test_exclude_on_targets)
-    
+
     for fold_i, test_targets_fold in enumerate(test_target_folds_list):
         for seed in seeds:
             train_targets = [target for target in targets if target not in test_targets_fold]
@@ -280,12 +294,12 @@ def incremental_union_test_models_folds(
                     str(n_trees), str(fold_i)) + save_model_dir_path_prefix
                 for model_type in models_options:
                     path_prefix = save_model_dir_path_prefix + "seed_" + str(seed) + \
-                                "/trained_with_" + str(i+1) + "_guides_"
+                                  "/trained_with_" + str(i + 1) + "_guides_"
                     incremental_test_evaluate_folds(
-                            model_type, positive_df, negative_df, test_targets_fold, trans_type, i,
-                            test_exclude_on_targets, include_distance_feature_options, nucleotides_to_position_mapping,
-                            n_trees, save_model_dir_path_prefix, path_prefix, seed, **kwargs)
-                    
+                        model_type, positive_df, negative_df, test_targets_fold, trans_type, i,
+                        test_exclude_on_targets, include_distance_feature_options, nucleotides_to_position_mapping,
+                        n_trees, save_model_dir_path_prefix, path_prefix, seed, **kwargs)
+
 
 def main():
     """
@@ -294,32 +308,249 @@ def main():
     # some testing examples. The models you are testing must be existed before
     # See regular_test_models, incremental_test_models_folds, and incremental_union_test_models_folds
     # to test other options.
-    regular_test_models(
-        models_options=tuple(("regression_without_negatives",)),
-        include_distance_feature_options=(True,),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, task="evaluation",
-        data_types=('CHANGEseq', 'GUIDEseq'))
-    regular_test_models(
-        models_options=tuple(("classifier", "regression_with_negatives")),
-        include_distance_feature_options=(True, False),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, task="evaluation",
-        data_types=('CHANGEseq', 'GUIDEseq'))
+    # regular_test_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
 
-    #to obtain the predictions we change the task into prediction
-    regular_test_models(
-        models_options=tuple(("regression_without_negatives",)),
-        include_distance_feature_options=(True,),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, task="prediction",
-        data_types=('CHANGEseq', 'GUIDEseq'))
+    # to obtain the predictions we change the task into prediction
+    # regular_test_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="prediction",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="prediction",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Read counts log transformation improves prediction performance
+
+    # # Figure C/D: CHANGE-seq/Classification/Regression-seq-dist/log transformation
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # # Figure C/D: CHANGE-seq/Classification/Regression-seq-dist/without log transformation
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     trans_type="no_trans",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # # Figure E/F: CHANGE-seq/Regression/Regression-seq-dist/log transformation
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # # Figure E/F: CHANGE-seq/Regression/Regression-seq-dist/without log transformation
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     trans_type="no_trans", task="evaluation",
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Including potential OTSs with no reads in regression model training improves prediction performance
+
+    # # Figure A/B: CHANGE-seq/Classification/Regression-seq-dist/log transformation/ with potential OTSs
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # # Figure A/B: CHANGE-seq/Classification/Regression-seq-dist/log transformation/ without potential OTSs
+    # regular_test_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # # Figure C/D: CHANGE-seq/Regression/Regression-seq-dist/log transformation/ with potential OTSs
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
+    #
+    # # Figure C/D: CHANGE-seq/Regression/Regression-seq-dist/log transformation/ without potential OTSs
+    # regular_test_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # The combination of sequence and distance
+    # features achieves the best prediction performance
+
+    # # Figure A/B/C/D: Combination  of sequence and distance features on both classification and regression tasks
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, task="evaluation",
+    #     data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Evaluating regression task performance of models trained with the distance feature only
+
+    # # FIGURE A/B CHANGE-seq/Regression-dist/with distance feature
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(False,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # # Figure C Linear function compared with the function learned by the model for regression-dist
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(False,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     task="prediction")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # # Trying to improve the prediction performance of GUIDEseq regression-seq-dist using hyperparameter tuning
+    # regular_test_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('GUIDEseq',))
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # # Testing the Decision Tree model on the CHANGE-seq and GUIDE-seq dataset
+    # regular_test_models(
+    #     models_options=tuple(("classifier",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'))
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # # Evaluating the performance of models trained with One Hot encoding
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),  
+    #     encoding="OneHot")
+
+    # # Evaluating the performance of models trained with One Hot 5 channel encoding
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="OneHot5Channel")
+
+    # # Evaluating the performance of models trained with kmer encoding
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="kmer", task="prediction")
+
+    # # Evaluating the performance of models trained with One Hot encoding with vertical stacking
+    # regular_test_models(
+
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="OneHotVstack", task="prediction")
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #Come hai vecchi tempi
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="NPM")
+    
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="OneHot")
+    
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="OneHot5Channel")
+    
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="OneHotVstack")
+
     regular_test_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
-        include_distance_feature_options=(True, False),
+        include_distance_feature_options=(True,False),
         include_sequence_features_options=(True,),
-        k_fold_number=10, task="prediction",
-        data_types=('CHANGEseq', 'GUIDEseq'))
+        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+        encoding="kmer")
+
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="LabelEncodingPairwise")
+
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="bulges")
+
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="MM")    
 
 
 if __name__ == '__main__':

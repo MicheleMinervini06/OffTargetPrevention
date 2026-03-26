@@ -11,6 +11,7 @@ from SysEvalOffTarget_src.train_utilities import train
 from SysEvalOffTarget_src.utilities import create_nucleotides_to_position_mapping
 from SysEvalOffTarget_src.utilities import order_sg_rnas, load_order_sg_rnas
 from SysEvalOffTarget_src import general_utilities
+
 random.seed(general_utilities.SEED)
 
 
@@ -27,6 +28,10 @@ def load_train_datasets(union_model, data_type, exclude_on_targets):
     datasets_dir_path = general_utilities.DATASETS_PATH
     datasets_dir_path += 'exclude_on_targets/' if exclude_on_targets else 'include_on_targets/'
     if not union_model:
+
+
+
+
         # Train CHANGE-seq/GUIDE-seq model
         try:
             targets = load_order_sg_rnas(data_type)
@@ -85,18 +90,19 @@ def load_train_datasets(union_model, data_type, exclude_on_targets):
         negative_change_seq_df = negative_change_seq_df[
             ["chrom", "chromStart", "target", "offtarget_sequence", "distance", "label"]]
         negative_df = pd.concat([negative_change_seq_df, negative_guide_seq_df])
-        
+
         targets = targets_change_seq
 
     return targets, positive_df, negative_df
 
 
 def regular_train_models(
-        models_options=("regression_with_negatives", "classifier", "regression_without_negatives"), union_model=False,
-        include_distance_feature_options=(True, False), include_sequence_features_options=(True, False),
-        n_trees=1000, trans_type="ln_x_plus_one_trans", trans_all_fold=False, trans_only_positive=False,
-        exclude_targets_without_positives=False, exclude_on_targets=False, k_fold_number=10, data_type="CHANGEseq",
-        xgb_model=None, transfer_learning_type="add", exclude_targets_with_rhampseq_exp=False, save_model=True):
+    models_options=("regression_with_negatives", "classifier", "regression_without_negatives"), union_model=False,
+    include_distance_feature_options=(True, False), include_sequence_features_options=(True, False),
+    n_trees=1000, trans_type="ln_x_plus_one_trans", trans_all_fold=False, trans_only_positive=False,
+    exclude_targets_without_positives=False, exclude_on_targets=False, k_fold_number=10, data_type="CHANGEseq",
+    xgb_model=None, transfer_learning_type="add", exclude_targets_with_rhampseq_exp=False, save_model=True,
+    save_root_folder="new_models", encoding="NPM"):
     """
     Function for training the models. This performs k-fold training.
     :param models_options: tuple. A tuple with the model types to train. support these options:
@@ -133,9 +139,10 @@ def regular_train_models(
     :param exclude_targets_with_rhampseq_exp: bool. exclude the targets that appear in the rhAmpSeq experiment if True.
         Default: False
     :param save_model: bool. Save the models if True
+    :param encoding: str. The encoding type. Options : "NPM" or "OneHot" Default: "NPM"
     :return: None
     """
-    nucleotides_to_position_mapping = create_nucleotides_to_position_mapping()
+    nucleotides_to_position_mapping = create_nucleotides_to_position_mapping(encoding=encoding)
     targets, positive_df, negative_df = load_train_datasets(union_model, data_type, exclude_on_targets)
     data_type = "CHANGEseq" if union_model else data_type
 
@@ -157,20 +164,24 @@ def regular_train_models(
         "GUIDE_and_CHANGE_seq_{}_trees".format(str(n_trees)) + '/' + save_model_dir_path_prefix
 
     save_model_dir_path_prefix += "TL_" + transfer_learning_type + '/' if xgb_model is not None else ""
+    # prepend a custom root folder to separate new models from old ones
+    if save_root_folder:
+        save_model_dir_path_prefix = save_root_folder.rstrip('/') + '/' + save_model_dir_path_prefix
     for model_type in models_options:
         path_prefix = save_model_dir_path_prefix + model_type + "/"
         for include_distance_feature in include_distance_feature_options:
             for include_sequence_features in include_sequence_features_options:
                 if (not include_distance_feature) and (not include_sequence_features):
                     continue
-                train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
-                      data_type=data_type, model_type=model_type, k_fold_number=k_fold_number,
+                #encoding = ("NPM", "OneHot", "OneHot5Channel", "OneHotVstack", "kmer", "LabelEncodingPairwise")
+                train(positive_df, negative_df, targets, nucleotides_to_position_mapping, data_type=data_type,
+                      model_type=model_type, k_fold_number=k_fold_number,
                       include_distance_feature=include_distance_feature,
                       include_sequence_features=include_sequence_features, balanced=False, trans_type=trans_type,
                       trans_all_fold=trans_all_fold, trans_only_positive=trans_only_positive,
                       exclude_targets_without_positives=exclude_targets_without_positives, path_prefix=path_prefix,
                       xgb_model=xgb_model, transfer_learning_type=transfer_learning_type, save_model=save_model,
-                      n_trees=n_trees)
+                      n_trees=n_trees, encoding=encoding)
 
 
 def incremental_pretrain_base_models(models_options=("regression_with_negatives", "classifier"),
@@ -226,11 +237,10 @@ def incremental_pretrain_base_models(models_options=("regression_with_negatives"
     for model_type in models_options:
         path_prefix = save_model_dir_path_prefix + model_type + "/"
         for include_distance_feature in (True, False):
-            train(positive_df, negative_df, targets_change_seq, nucleotides_to_position_mapping,
-                  data_type="CHANGEseq", model_type=model_type, k_fold_number=1,
-                  include_distance_feature=include_distance_feature,
-                  include_sequence_features=True, balanced=False,
-                  trans_type=trans_type, path_prefix=path_prefix, **kwargs)
+            train(positive_df, negative_df, targets_change_seq, nucleotides_to_position_mapping, data_type="CHANGEseq",
+                  model_type=model_type, k_fold_number=1, include_distance_feature=include_distance_feature,
+                  include_sequence_features=True, balanced=False, trans_type=trans_type, path_prefix=path_prefix,
+                  encoding="NPM", **kwargs)
 
 
 def incremental_train_models_folds(models_options=("regression_with_negatives", "classifier"),
@@ -268,7 +278,7 @@ def incremental_train_models_folds(models_options=("regression_with_negatives", 
 
     # GUIDE-seq
     random.seed(general_utilities.SEED)
-    nucleotides_to_position_mapping = create_nucleotides_to_position_mapping()
+    nucleotides_to_position_mapping = ()
     try:
         targets = load_order_sg_rnas("GUIDE")
     except FileNotFoundError:
@@ -297,58 +307,59 @@ def incremental_train_models_folds(models_options=("regression_with_negatives", 
             random.seed(general_utilities.SEED)
             save_model_dir_path_prefix = 'exclude_on_targets/' if exclude_on_targets else 'include_on_targets/'
             save_model_dir_path_prefix = "GUIDEseq/incremental_folds_training/fold_{}/".format(str(fold_i)) + \
-                save_model_dir_path_prefix
+                                         save_model_dir_path_prefix
             for transfer_learning_type in transfer_learning_types:
                 type_save_model_dir_path_prefix = save_model_dir_path_prefix + \
-                    "GS_TL_" + transfer_learning_type + '/' if transfer_learning_type is not None \
+                                                  "GS_TL_" + transfer_learning_type + '/' if transfer_learning_type is not None \
                     else save_model_dir_path_prefix + "GS/"
                 xgb_model_path = general_utilities.FILES_DIR + "models_1fold/" + \
-                    "train_CHANGE_seq_on_non_overlapping_targets_with_GUIDE_seq/"
+                                 "train_CHANGE_seq_on_non_overlapping_targets_with_GUIDE_seq/"
                 xgb_model_path += 'exclude_on_targets/' if exclude_on_targets else 'include_on_targets/'
                 for i in range(len(train_targets)):
                     path_prefix = type_save_model_dir_path_prefix + "seed_" + str(seed) + \
-                                "/trained_with_" + str(i+1) + "_guides_"
+                                  "/trained_with_" + str(i + 1) + "_guides_"
                     if "classifier" in models_options:
-                        train(positive_df, negative_df, train_targets[0:i+1], nucleotides_to_position_mapping,
-                            data_type='GUIDEseq', model_type="classifier", k_fold_number=1,
-                            include_distance_feature=False, include_sequence_features=True, balanced=False,
-                            trans_type=trans_type, path_prefix=path_prefix,
-                            xgb_model=xgb_model_path +
-                                        "classifier/classifier_xgb_model_fold_0_without_Kfold_imbalanced.xgb"
-                                        if transfer_learning_type is not None else None,
-                            transfer_learning_type=transfer_learning_type, **kwargs)
-                        train(positive_df, negative_df, train_targets[0:i+1], nucleotides_to_position_mapping,
-                            data_type='GUIDEseq', model_type="classifier", k_fold_number=1,
-                            include_distance_feature=True, include_sequence_features=True, balanced=False,
-                            trans_type=trans_type, path_prefix=path_prefix,
-                            xgb_model=xgb_model_path +
-                                    "classifier/classifier_xgb_model_fold_0_with_distance_without_Kfold_imbalanced.xgb"
-                                    if transfer_learning_type is not None else None,
-                            transfer_learning_type=transfer_learning_type, **kwargs)
+                        train(positive_df, negative_df, train_targets[0:i + 1], nucleotides_to_position_mapping,
+                              data_type='GUIDEseq', model_type="classifier", k_fold_number=1,
+                              include_distance_feature=False, include_sequence_features=True, balanced=False,
+                              trans_type=trans_type, path_prefix=path_prefix, xgb_model=xgb_model_path +
+                                                                                        "classifier"
+                                                                                        "/classifier_xgb_model_fold_0_without_Kfold_imbalanced.xgb"
+                            if transfer_learning_type is not None else None,
+                              transfer_learning_type=transfer_learning_type, encoding="NPM", **kwargs)
+                        train(positive_df, negative_df, train_targets[0:i + 1], nucleotides_to_position_mapping,
+                              data_type='GUIDEseq', model_type="classifier", k_fold_number=1,
+                              include_distance_feature=True, include_sequence_features=True, balanced=False,
+                              trans_type=trans_type, path_prefix=path_prefix, xgb_model=xgb_model_path +
+                                                                                        "classifier"
+                                                                                        "/classifier_xgb_model_fold_0_with_distance_without_Kfold_imbalanced.xgb"
+                            if transfer_learning_type is not None else None,
+                              transfer_learning_type=transfer_learning_type, encoding="NPM", **kwargs)
                     if "regression_with_negatives" in models_options:
-                        train(positive_df, negative_df, train_targets[0:i+1], nucleotides_to_position_mapping,
-                            data_type='GUIDEseq', model_type="regression_with_negatives", k_fold_number=1,
-                            include_distance_feature=False, include_sequence_features=True, balanced=False,
-                            trans_type=trans_type, path_prefix=path_prefix,
-                            xgb_model=xgb_model_path + "regression_with_negatives/"
-                            "regression_with_negatives_xgb_model_fold_0_without_Kfold_imbalanced.xgb"
-                            if transfer_learning_type is not None else None,
-                            transfer_learning_type=transfer_learning_type, **kwargs)
-                        train(positive_df, negative_df, train_targets[0:i+1], nucleotides_to_position_mapping,
-                            data_type='GUIDEseq', model_type="regression_with_negatives", k_fold_number=1,
-                            include_distance_feature=True,
-                            include_sequence_features=True, balanced=False,
-                            trans_type=trans_type, path_prefix=path_prefix,
-                            xgb_model=xgb_model_path + "regression_with_negatives/"
-                            "regression_with_negatives_xgb_model_fold_0_with_distance_without_Kfold_imbalanced.xgb"
-                            if transfer_learning_type is not None else None,
-                            transfer_learning_type=transfer_learning_type, **kwargs)
+                        train(positive_df, negative_df, train_targets[0:i + 1], nucleotides_to_position_mapping,
+                              data_type='GUIDEseq', model_type="regression_with_negatives", k_fold_number=1,
+                              include_distance_feature=False, include_sequence_features=True, balanced=False,
+                              trans_type=trans_type, path_prefix=path_prefix,
+                              xgb_model=xgb_model_path + "regression_with_negatives/"
+                                                         "regression_with_negatives_xgb_model_fold_0_without_Kfold_imbalanced.xgb"
+                              if transfer_learning_type is not None else None,
+                              transfer_learning_type=transfer_learning_type, encoding="NPM", **kwargs)
+                        train(positive_df, negative_df, train_targets[0:i + 1], nucleotides_to_position_mapping,
+                              data_type='GUIDEseq', model_type="regression_with_negatives", k_fold_number=1,
+                              include_distance_feature=True, include_sequence_features=True, balanced=False,
+                              trans_type=trans_type, path_prefix=path_prefix,
+                              xgb_model=xgb_model_path + "regression_with_negatives/"
+                                                         "regression_with_negatives_xgb_model_fold_0_with_distance_without_Kfold_imbalanced.xgb"
+                              if transfer_learning_type is not None else None,
+                              transfer_learning_type=transfer_learning_type, encoding="NPM", **kwargs)
 
 
 def incremental_union_train_models_folds(models_options=("regression_with_negatives", "classifier"),
-        include_distance_feature_options=(True, False), include_sequence_features_options=(True, False),
-        exclude_on_targets=False, trans_type="ln_x_plus_one_trans", seeds=(i for i in range(1, 11)),
-        n_trees=1000, **kwargs):
+                                         include_distance_feature_options=(True, False),
+                                         include_sequence_features_options=(True, False),
+                                         exclude_on_targets=False, trans_type="ln_x_plus_one_trans",
+                                         seeds=(i for i in range(1, 11)),
+                                         n_trees=1000, **kwargs):
     """
     training the CS-GS-Union models in incremental way. For each model type, we're training n
     (where n is the number sgRNA we dedicated for training the TL models) models. we start with one GUIDE-seq sgRNA in a
@@ -398,7 +409,7 @@ def incremental_union_train_models_folds(models_options=("regression_with_negati
             random.shuffle(targets_guide_seq_train)
             random.seed(general_utilities.SEED)
             for i in range(len(targets_guide_seq_train)):
-                targets_guide_seq_train_i = targets_guide_seq_train[:i+1]
+                targets_guide_seq_train_i = targets_guide_seq_train[:i + 1]
                 targets_train = targets_guide_seq_train_i + targets_change_seq_train
                 print("targets in train:", len(targets_train))
                 print(targets_train)
@@ -428,7 +439,6 @@ def incremental_union_train_models_folds(models_options=("regression_with_negati
                 negative_guide_seq_df = negative_guide_seq_df[
                     negative_guide_seq_df["target"].isin(targets_guide_seq_train_i)]
 
-
                 positive_guide_seq_df = positive_guide_seq_df[
                     ["chrom", "chromStart", "GUIDEseq_reads", "target", "offtarget_sequence", "distance", "label"]]
                 # just for simplicity, assume GUIDEseq_reads are CHANGEseq_reads
@@ -447,11 +457,11 @@ def incremental_union_train_models_folds(models_options=("regression_with_negati
                 save_model_dir_path_prefix = 'exclude_on_targets/' if exclude_on_targets else 'include_on_targets/'
                 save_model_dir_path_prefix = \
                     "GUIDE_and_CHANGE_seq_{}_trees/incremental_folds_training/fold_{}/".format(str(n_trees),
-                    str(fold_i)) + save_model_dir_path_prefix
+                                                                                               str(fold_i)) + save_model_dir_path_prefix
                 data_type = 'CHANGEseq'
                 for model_type in models_options:
                     path_prefix = save_model_dir_path_prefix + "seed_" + str(seed) + \
-                                "/trained_with_" + str(i+1) + "_guides_"
+                                  "/trained_with_" + str(i + 1) + "_guides_"
                     for include_distance_feature in include_distance_feature_options:
                         for include_sequence_features in include_sequence_features_options:
                             if (not include_distance_feature) and (not include_sequence_features):
@@ -460,7 +470,9 @@ def incremental_union_train_models_folds(models_options=("regression_with_negati
                                   data_type=data_type, model_type=model_type, k_fold_number=1,
                                   include_distance_feature=include_distance_feature,
                                   include_sequence_features=include_sequence_features, balanced=False,
-                                  trans_type=trans_type, path_prefix=path_prefix, n_trees=n_trees, **kwargs)
+                                  trans_type=trans_type, path_prefix=path_prefix, n_trees=n_trees, encoding="NPM",
+                                  **kwargs)
+
 
 def main():
     """
@@ -469,17 +481,333 @@ def main():
     # some training examples. You need to run prepre_data.py before trying to train.
     # See regular_train_models, incremental_train_models_folds, and incremental_union_train_models_folds 
     # to train other options.
-    regular_train_models(
-        models_options=tuple(("regression_without_negatives",)),
-        include_distance_feature_options=(True,),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, data_type="CHANGEseq")
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # # Read counts log transformation improves prediction performance
+    #
+    # # Figure C/D/E/F: CHANGE-seq/Regression-seq-dist/log transformation
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+    #
+    # # Figure C/D/E/F: CHANGE-seq/Regression-seq-dist/without log transformation
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     trans_type="no_trans",
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Including potential OTSs with no reads in regression model training improves prediction performance
+
+    # # Figure A/B/C/D: CHANGE-seq/Regression-seq-dist/with inactive sites
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+    #
+    # # Figure A/B/C/D: CHANGE-seq/Regression-seq-dist/without inactive sites
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # The combination of sequence and distance
+    # features achieves the best prediction performance
+
+    # # Figure A/B/C/D: Combination  of sequence and distance features on both classification and regression tasks
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Evaluating regression task performance of models trained with the distance feature only
+
+    # # FIGURE A/B CHANGE-seq/Regression-dist/with distance feature
+    # # Figure C Linear function compared with the function learned by the model for regression-dist
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(False,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # # Training of Regression-seq, Regression-seq-dist, and Classification-seq, Classification-seq-dist models
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="NPM")
+
+    # # Training of Regression-seq, Regression-seq-dist, and Classification-seq, Classification-seq-dist models
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHot")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # # Training the model using a decision tree
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives", "classifier", "regression_without_negatives")),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # # Training of Classification-seq-dist and Regression-seq-dist using onehot encoding
+    # regular_train_models(
+    #     models_options=tuple(("classifier",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHot")
+
+    # # Training of Classification seq-dist and Regression-seq-dist using bulges encoding
+    # regular_train_models(
+    #     models_options=tuple(("classifier","regression_with_negatives")),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="bulges")
+
+    # # Training of Classification-seq-dist using kmer encoding
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="kmer")
+
+    # # Training of Classification-seq-dist and Regression-seq-dist using onehot 5 channel encoding
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHot5Channel")
+
+    # # Training of Classification-seq-dist and Regression-seq-dist using kmer encoding
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="kmer")
+
+    # # Training of Classification-seq-dist and Regression-seq-dist using onehot encoding with vertical stacking
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHotVstack")
+
+    # # Training of Classification-seq-dist and Regression-seq-dist using Label encoding pairwise
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="LabelEncodingPairwise")
+
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="CatBoost")
+    
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # # Trying to improve the prediction performance of GUIDEseq regression-seq-dist using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="GUIDEseq")
+
+    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq")
+
+    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist with One Hot Encoding using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=1, data_type="CHANGEseq",
+    #     encoding="OneHot", save_model=False)
+
+    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist with One Hot Encoding 5 channel using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=1, data_type="CHANGEseq",
+    #     encoding="OneHot5Channel", save_model=False)
+
+    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist with kmer encoding using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=1, data_type="CHANGEseq",
+    #     encoding="kmer", save_model=False)
+
+    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist with kmer encoding using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=1, data_type="CHANGEseq",
+    #     encoding="OneHotVstack", save_model=False)
+
+    # # Trying to improve the prediction performance of CHANGEseq regression-seq-dist with kmer encoding using hyperparameter tuning
+    # regular_train_models(
+    #     models_options=tuple(("regression_with_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=1, data_type="CHANGEseq",
+    #     encoding="LabelEncodingPairwise", save_model=False)
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Training the models without negatives to evaluate the performance of the models
+
+    # # Nucleotide Position Mapping
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="NPM", save_model=False)
+
+    # # One Hot Encoding
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHot", save_model=False)
+
+    # # One Hot Encoding 5 Channel
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHot5Channel", save_model=False)
+    
+    # # One Hot Vstack
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHotVstack", save_model=False)
+
+    # # K-mer encoding
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="kmer", save_model=False)
+
+    # # Label Encoding Pairwise
+    # regular_train_models(
+    #     models_options=tuple(("regression_without_negatives",)),
+    #     include_distance_feature_options=(True,),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="LabelEncodingPairwise", save_model=False)
+
+
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Come hai vecchi tempi
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="NPM")
+
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHot")
+
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHot5Channel")
+
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHotVstack")
+
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="kmer")
+
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="LabelEncodingPairwise")
+
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="bulges")
+
     regular_train_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True, False),
-        include_sequence_features_options=tuple((True,)),
-        k_fold_number=10, data_type="CHANGEseq")
-
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_type="CHANGEseq",
+        encoding="MM")            
 
 if __name__ == '__main__':
     main()
