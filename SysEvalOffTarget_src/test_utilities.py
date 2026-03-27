@@ -157,7 +157,31 @@ def load_model(model_type, k_fold_number, fold_index, gpu, trans_type, balanced,
         raise FileNotFoundError(f"Model file not found: {dir_path}")
 
     if model_backend == "catboost":
-        model.load_model(dir_path, format='json')
+        # CatBoost models in this project may be stored as binary CBM even with a .json extension.
+        # Detect signature and try the expected format first, then fallback to the other format.
+        signature = b""
+        try:
+            with open(dir_path, "rb") as f:
+                signature = f.read(4)
+        except OSError:
+            signature = b""
+
+        try:
+            if signature == b"CBM1":
+                model.load_model(dir_path)
+            else:
+                model.load_model(dir_path, format='json')
+        except Exception as primary_error:
+            try:
+                if signature == b"CBM1":
+                    model.load_model(dir_path, format='json')
+                else:
+                    model.load_model(dir_path)
+            except Exception as secondary_error:
+                raise RuntimeError(
+                    f"Failed to load CatBoost model at {dir_path}. "
+                    f"Primary error: {primary_error}. Secondary error: {secondary_error}"
+                ) from secondary_error
     else:
         try:
             model.load_model(dir_path)
@@ -222,13 +246,17 @@ def model_folds_predictions(positive_df, negative_df, targets, nucleotides_to_po
                                trans_all_fold, trans_only_positive, exclude_targets_without_positives,
                                encoding=encoding, model_backend=model_backend, use_xgboost=use_xgboost)
         except FileNotFoundError:
-            # Fallback: try legacy decision-tree pickles
-            if model_type == "classifier":
-                model = joblib.load(f'decision_tree_{i}_classifier.pkl')
-            elif model_type == "regression_with_negatives":
-                model = joblib.load(f'decision_tree_{i}_regression_with_negatives.pkl')
+            # For statistical comparisons we must avoid backend mixing.
+            # Fallback to decision-tree pickles is allowed only when explicitly requested.
+            if model_backend == "decision_tree":
+                if model_type == "classifier":
+                    model = joblib.load(f'decision_tree_{i}_classifier.pkl')
+                elif model_type == "regression_with_negatives":
+                    model = joblib.load(f'decision_tree_{i}_regression_with_negatives.pkl')
+                else:
+                    model = joblib.load(f'decision_tree_{i}_regression_without_negatives.pkl')
             else:
-                model = joblib.load(f'decision_tree_{i}_regression_without_negatives.pkl')
+                raise
 
         # predict and insert the predictions into the predictions dfs
         for j, dataset_df in enumerate((positive_df_test, negative_df_test)):

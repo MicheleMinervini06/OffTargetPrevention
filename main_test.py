@@ -23,7 +23,7 @@ def regular_test_models(
         trans_only_positive=False, exclude_targets_without_positives=False,
         train_exclude_on_targets=False, test_exclude_on_targets=False, k_fold_number=10,
         task="evaluation", data_types=('CHANGEseq', 'GUIDEseq'), intersection=None,
-        encoding="NPM"):
+    encoding="NPM", model_backend="xgboost"):
     """
     Function for testing the models. The corresponding function to regular_train_models.
     This function produces results for the regression and classification models trained only on the CHANGE-seq dataset.
@@ -64,8 +64,16 @@ def regular_test_models(
         "CHANGE_GUIDE_intersection_by_both" or "CHANGE_GUIDE_intersection_by_GUIDE".
         See prepare_data file for description. Default: None
     :param encoding: str. encoding type. Options: "NPM" or "OneHot". Default: "NPM"
+    :param model_backend: str. Model backend used for loading/evaluating models.
+        Options: "xgboost" or "catboost". Default: "xgboost"
     :return: None
     """
+    model_backend = model_backend.lower() if isinstance(model_backend, str) else model_backend
+    if model_backend == "xgb":
+        model_backend = "xgboost"
+    if model_backend not in ("xgboost", "catboost"):
+        raise ValueError("model_backend must be either 'xgboost' or 'catboost'")
+
     if intersection is not None and task == "prediction":
         raise ValueError("prediction task does not support prediction on the intersection")
 
@@ -123,12 +131,16 @@ def regular_test_models(
                                    "trans_only_positive": trans_only_positive,
                                    "exclude_targets_without_positives": exclude_targets_without_positives,
                                    "encoding": encoding,
-                                   "use_xgboost": True}
+                                   "use_xgboost": model_backend == "xgboost",
+                                   "model_backend": model_backend}
                     if task == "evaluation":
                         call_kwargs.update({"models_path_prefix": models_path_prefix,
                                             "results_path_prefix": evaluation_results_path_prefix})
-                        print("Call args", call_args)
-                        print("Call kwargs", call_kwargs)
+                        print(
+                            "Evaluation:",
+                            f"data_type={data_type}, model_type={model_type}, encoding={encoding},",
+                            f"backend={model_backend}, dist={include_distance_feature}, seq={include_sequence_features}"
+                        )
                         evaluation(*call_args, **call_kwargs)
                     elif task == "prediction":
                         call_kwargs.update({"add_to_results_table": True,
@@ -524,12 +536,12 @@ def main():
     #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
     #     encoding="OneHotVstack")
 
-    regular_test_models(
-        models_options=tuple(("classifier", "regression_with_negatives")),
-        include_distance_feature_options=(True,False),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
-        encoding="kmer")
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="kmer")
 
     # regular_test_models(
     #     models_options=tuple(("classifier", "regression_with_negatives")),
@@ -550,7 +562,66 @@ def main():
     #     include_distance_feature_options=(True,False),
     #     include_sequence_features_options=(True,),
     #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
-    #     encoding="MM")    
+    #     encoding="MM")
+    # 
+    # =======================================================================================================================
+    # 
+    # Testing models using catboost and different encodings
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="NPM", model_backend="catboost")
+
+    regular_test_models(
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True,False),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+        encoding="OneHot", model_backend="catboost")
+
+    regular_test_models(
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True,False),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+        encoding="OneHot5Channel", model_backend="catboost")
+
+    regular_test_models(
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True,False),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+        encoding="OneHotVstack", model_backend="catboost")
+
+    regular_test_models(
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True,False),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+        encoding="kmer", model_backend="catboost")
+
+    regular_test_models(
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True,False),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+        encoding="LabelEncodingPairwise", model_backend="catboost")
+
+    regular_test_models(
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True,False),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+        encoding="bulges", model_backend="catboost")
+
+    regular_test_models(
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True,False),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+        encoding="MM", model_backend="catboost")
 
 
 if __name__ == '__main__':
