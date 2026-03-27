@@ -121,7 +121,9 @@ def load_model(model_type, k_fold_number, fold_index, gpu, trans_type, balanced,
     model_backend = normalize_model_backend(model_backend, use_xgboost=use_xgboost)
     cat_feature_indices = [i for i in range(0, 23)] if encoding == "CatBoost" and include_sequence_features else []
 
-    if model_type == "classifier":
+    if model_backend == "decision_tree":
+        model = None
+    elif model_type == "classifier":
         model = CatBoostClassifier(cat_features=cat_feature_indices) if model_backend == "catboost" else xgb.XGBClassifier()
     else:
         model = CatBoostRegressor(cat_features=cat_feature_indices) if model_backend == "catboost" else xgb.XGBRegressor()
@@ -139,6 +141,8 @@ def load_model(model_type, k_fold_number, fold_index, gpu, trans_type, balanced,
     # (model_label included encoding, e.g. xgb_OneHot) for backward compatibility
     if not Path(dir_path).exists():
         backend_label = "catboost" if model_backend == "catboost" else "xgb"
+        if model_backend == "decision_tree":
+            backend_label = "decision_tree"
         legacy_label = backend_label + "_" + encoding
         legacy_dir_path = dir_path.replace(f"_{backend_label}_", f"_{legacy_label}_")
         if Path(legacy_dir_path).exists():
@@ -155,6 +159,9 @@ def load_model(model_type, k_fold_number, fold_index, gpu, trans_type, balanced,
                 
     if not Path(dir_path).exists():
         raise FileNotFoundError(f"Model file not found: {dir_path}")
+
+    if model_backend == "decision_tree":
+        return joblib.load(dir_path)
 
     if model_backend == "catboost":
         # CatBoost models in this project may be stored as binary CBM even with a .json extension.
@@ -246,17 +253,8 @@ def model_folds_predictions(positive_df, negative_df, targets, nucleotides_to_po
                                trans_all_fold, trans_only_positive, exclude_targets_without_positives,
                                encoding=encoding, model_backend=model_backend, use_xgboost=use_xgboost)
         except FileNotFoundError:
-            # For statistical comparisons we must avoid backend mixing.
-            # Fallback to decision-tree pickles is allowed only when explicitly requested.
-            if model_backend == "decision_tree":
-                if model_type == "classifier":
-                    model = joblib.load(f'decision_tree_{i}_classifier.pkl')
-                elif model_type == "regression_with_negatives":
-                    model = joblib.load(f'decision_tree_{i}_regression_with_negatives.pkl')
-                else:
-                    model = joblib.load(f'decision_tree_{i}_regression_without_negatives.pkl')
-            else:
-                raise
+            # Keep comparisons fair: always use the same path-based backend loading logic.
+            raise
 
         # predict and insert the predictions into the predictions dfs
         for j, dataset_df in enumerate((positive_df_test, negative_df_test)):

@@ -140,15 +140,16 @@ def regular_train_models(
         Default: False
     :param save_model: bool. Save the models if True
     :param encoding: str. The encoding type. Options : "NPM" or "OneHot" Default: "NPM"
-    :param model_backend: str. Model backend used for training. Options: "xgboost" or "catboost".
+    :param model_backend: str. Model backend used for training.
+        Options: "xgboost", "catboost" or "decision_tree".
         Default: "xgboost"
     :return: None
     """
     model_backend = model_backend.lower() if isinstance(model_backend, str) else model_backend
     if model_backend == "xgb":
         model_backend = "xgboost"
-    if model_backend not in ("xgboost", "catboost"):
-        raise ValueError("model_backend must be either 'xgboost' or 'catboost'")
+    if model_backend not in ("xgboost", "catboost", "decision_tree"):
+        raise ValueError("model_backend must be one of: 'xgboost', 'catboost', 'decision_tree'")
     if model_backend != "xgboost" and xgb_model is not None:
         raise ValueError("xgb_model transfer learning is currently supported only with model_backend='xgboost'")
 
@@ -829,54 +830,113 @@ def main():
     #     k_fold_number=10, data_type="CHANGEseq",
     #     encoding="OneHot", model_backend="catboost")
 
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="NPM", model_backend="catboost")
+
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHot5Channel", model_backend="catboost")
+
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHotVstack", model_backend="catboost")
+
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="kmer", model_backend="catboost")
+
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="LabelEncodingPairwise", model_backend="catboost")
+
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="bulges", model_backend="catboost")
+
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="MM", model_backend="catboost")
+
+    # ==================================================================================================\
+
+    # # Trainig model using decision trees and different encodings
+    # regular_train_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True, False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_type="CHANGEseq",
+    #     encoding="OneHot", model_backend="decision_tree")
+    
     regular_train_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True, False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_type="CHANGEseq",
-        encoding="NPM", model_backend="catboost")
+        encoding="NPM", model_backend="decision_tree")
 
     regular_train_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True, False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_type="CHANGEseq",
-        encoding="OneHot5Channel", model_backend="catboost")
+        encoding="OneHot5Channel", model_backend="decision_tree")
 
     regular_train_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True, False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_type="CHANGEseq",
-        encoding="OneHotVstack", model_backend="catboost")
+        encoding="OneHotVstack", model_backend="decision_tree")
 
     regular_train_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True, False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_type="CHANGEseq",
-        encoding="kmer", model_backend="catboost")
+        encoding="kmer", model_backend="decision_tree")
 
     regular_train_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True, False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_type="CHANGEseq",
-        encoding="LabelEncodingPairwise", model_backend="catboost")
+        encoding="LabelEncodingPairwise", model_backend="decision_tree")
 
     regular_train_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True, False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_type="CHANGEseq",
-        encoding="bulges", model_backend="catboost")
+        encoding="bulges", model_backend="decision_tree")
 
     regular_train_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True, False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_type="CHANGEseq",
-        encoding="MM", model_backend="catboost")
+        encoding="MM", model_backend="decision_tree")
            
 
 if __name__ == '__main__':

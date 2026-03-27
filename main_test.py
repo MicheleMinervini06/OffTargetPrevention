@@ -65,14 +65,14 @@ def regular_test_models(
         See prepare_data file for description. Default: None
     :param encoding: str. encoding type. Options: "NPM" or "OneHot". Default: "NPM"
     :param model_backend: str. Model backend used for loading/evaluating models.
-        Options: "xgboost" or "catboost". Default: "xgboost"
+        Options: "xgboost", "catboost" or "decision_tree". Default: "xgboost"
     :return: None
     """
     model_backend = model_backend.lower() if isinstance(model_backend, str) else model_backend
     if model_backend == "xgb":
         model_backend = "xgboost"
-    if model_backend not in ("xgboost", "catboost"):
-        raise ValueError("model_backend must be either 'xgboost' or 'catboost'")
+    if model_backend not in ("xgboost", "catboost", "decision_tree"):
+        raise ValueError("model_backend must be one of: 'xgboost', 'catboost', 'decision_tree'")
 
     if intersection is not None and task == "prediction":
         raise ValueError("prediction task does not support prediction on the intersection")
@@ -574,54 +574,114 @@ def main():
     #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
     #     encoding="NPM", model_backend="catboost")
 
-    regular_test_models(
-        models_options=tuple(("classifier", "regression_with_negatives")),
-        include_distance_feature_options=(True,False),
-        include_sequence_features_options=(True,),
-        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
-        encoding="OneHot", model_backend="catboost")
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="OneHot", model_backend="catboost")
+
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="OneHot5Channel", model_backend="catboost")
+
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="OneHotVstack", model_backend="catboost")
+
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="kmer", model_backend="catboost")
+
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="LabelEncodingPairwise", model_backend="catboost")
+
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="bulges", model_backend="catboost")
+
+    # regular_test_models(
+    #     models_options=tuple(("classifier", "regression_with_negatives")),
+    #     include_distance_feature_options=(True,False),
+    #     include_sequence_features_options=(True,),
+    #     k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+    #     encoding="MM", model_backend="catboost")
+
+    # ==================================================================================================================
 
     regular_test_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True,False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
-        encoding="OneHot5Channel", model_backend="catboost")
+        encoding="OneHot", model_backend="decision_tree")
+    
+    regular_test_models(
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True,False),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+        encoding="NPM", model_backend="decision_tree")
 
     regular_test_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True,False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
-        encoding="OneHotVstack", model_backend="catboost")
+        encoding="OneHot5Channel", model_backend="decision_tree")
 
     regular_test_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True,False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
-        encoding="kmer", model_backend="catboost")
+        encoding="OneHotVstack", model_backend="decision_tree")
 
     regular_test_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True,False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
-        encoding="LabelEncodingPairwise", model_backend="catboost")
+        encoding="kmer", model_backend="decision_tree")
 
     regular_test_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True,False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
-        encoding="bulges", model_backend="catboost")
+        encoding="LabelEncodingPairwise", model_backend="decision_tree")
 
     regular_test_models(
         models_options=tuple(("classifier", "regression_with_negatives")),
         include_distance_feature_options=(True,False),
         include_sequence_features_options=(True,),
         k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
-        encoding="MM", model_backend="catboost")
+        encoding="bulges", model_backend="decision_tree")
+
+    regular_test_models(
+        models_options=tuple(("classifier", "regression_with_negatives")),
+        include_distance_feature_options=(True,False),
+        include_sequence_features_options=(True,),
+        k_fold_number=10, data_types=('CHANGEseq', 'GUIDEseq'),
+        encoding="MM", model_backend="decision_tree")
+
+
 
 
 if __name__ == '__main__':

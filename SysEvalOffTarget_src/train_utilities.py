@@ -34,6 +34,29 @@ import os
 random.seed(general_utilities.SEED)
 
 
+# Tuned Decision Tree baseline params obtained from random search on CHANGEseq regression_with_negatives (OneHot).
+DT_TUNED_COMMON_PARAMS = {
+    'splitter': 'random',
+    'min_samples_split': 55,
+    'min_samples_leaf': 17,
+    'max_features': 'log2',
+    'max_depth': 20,
+    'ccp_alpha': 0.011,
+    'random_state': 42,
+}
+
+DT_TUNED_REGRESSOR_PARAMS = {
+    **DT_TUNED_COMMON_PARAMS,
+    'criterion': 'absolute_error',
+}
+
+DT_TUNED_CLASSIFIER_PARAMS = {
+    **DT_TUNED_COMMON_PARAMS,
+    # Classifier cannot use "absolute_error"; keep the same structure and use a valid impurity criterion.
+    'criterion': 'log_loss',
+}
+
+
 def data_preprocessing(positive_df, negative_df, trans_type, data_type, trans_all_fold, trans_only_positive):
     """
     data_preprocessing
@@ -759,11 +782,9 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
                 print("************** training time:", end - start, "**************")
             else:
                 if model_type == "classifier":
-                    model = DecisionTreeClassifier(max_depth=None, min_samples_split=5, min_samples_leaf=2,
-                                                   max_features=None, random_state=42)
+                    model = DecisionTreeClassifier(**DT_TUNED_CLASSIFIER_PARAMS)
                 else:
-                    model = DecisionTreeRegressor(max_depth=None, min_samples_split=5, min_samples_leaf=2,
-                                                  max_features=None, random_state=42)
+                    model = DecisionTreeRegressor(**DT_TUNED_REGRESSOR_PARAMS)
 
                 # # Define the parameter grid for Decision Tree
                 # param_dist = {
@@ -779,10 +800,14 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
 
                 start = time.time()
                 if model_type == "classifier":
-                    # random_search.fit(sequence_features_train, sequence_class_train)
-                    model.fit(sequence_features_train, sequence_class_train)
+                    train_weights = build_sampleweight(sequence_class_train)
+                    model.fit(sequence_features_train, sequence_class_train,
+                              sample_weight=train_weights)
+                elif model_type == "regression_with_negatives":
+                    train_weights = build_sampleweight(sequence_class_train)
+                    model.fit(sequence_features_train, sequence_labels_train,
+                              sample_weight=train_weights)
                 else:
-                    # random_search.fit(sequence_features_train, sequence_labels_train)
                     model.fit(sequence_features_train, sequence_labels_train)
                 end = time.time()
 
@@ -821,28 +846,18 @@ def train(positive_df, negative_df, targets, nucleotides_to_position_mapping,
 
 
             if save_model:
+                dir_path = extract_model_path(model_type, k_fold_number, include_distance_feature,
+                                              include_sequence_features, balanced, trans_type, trans_all_fold,
+                                              trans_only_positive, exclude_targets_without_positives,
+                                              i + skip_num_folds, path_prefix, enc,
+                                              model_backend=model_backend)
+
+                Path(dir_path).parent.mkdir(parents=True, exist_ok=True)
+                print(dir_path)
+
                 if isinstance(model, (DecisionTreeClassifier, DecisionTreeRegressor)):
-                    print("The model is a Decision Tree.")
-                    # Save the model
-                    if model_type == "classifier":
-                        joblib.dump(model, f'decision_tree_{i}_classifier.pkl')
-                    elif model_type == "regression_with_negatives":
-                        joblib.dump(model, f'decision_tree_{i}_regression_with_negatives.pkl')
-                    else:
-                        joblib.dump(model, f'decision_tree_{i}_regression_without_negatives.pkl')        
+                    joblib.dump(model, dir_path)
                 else:
-                    dir_path = extract_model_path(model_type, k_fold_number, include_distance_feature,
-                                                  include_sequence_features, balanced, trans_type, trans_all_fold,
-                                                  trans_only_positive, exclude_targets_without_positives,
-                                                  i + skip_num_folds, path_prefix, enc,
-                                                  model_backend=model_backend)
-
-                    # Append tuned/early-stopping suffix (keeps naming consistent)
-                    #dir_path = dir_path.replace(".json", "_tuned_early_stopping.json")
-
-                    Path(dir_path).parent.mkdir(parents=True, exist_ok=True)
-                    # Changed format to avoid warning
-                    print(dir_path)
                     model.save_model(dir_path)
             models.append(model)
 

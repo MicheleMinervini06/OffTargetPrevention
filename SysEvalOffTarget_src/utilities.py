@@ -560,9 +560,10 @@ def extract_model_path(model_type, k_fold_number, include_distance_feature, incl
         model_label = "xgb"
     else:
         model_label = backend
+    model_extension = ".joblib" if backend == "decision_tree" else ".json"
     dir_path = general_utilities.FILES_DIR + "models_" + \
                str(k_fold_number) + "fold/" + path_prefix + model_type + \
-               "_" + model_label + "_model_fold_" + str(fold_index) + suffix + ".json"
+               "_" + model_label + "_model_fold_" + str(fold_index) + suffix + model_extension
 
     return dir_path
 
