@@ -2,7 +2,7 @@
 Statistical Testing Framework for Comparing Encodings and Model Backends
 
 This module provides statistical tests to compare:
-1. XGBoost vs CatBoost for each encoding
+1. Model backends pairwise for each encoding (XGBoost, CatBoost, Decision Tree)
 2. Different encodings within the same backend
 3. Generate comprehensive reports with significance levels
 
@@ -23,6 +23,30 @@ from typing import Dict, List, Optional, Tuple
 import warnings
 
 warnings.filterwarnings('ignore')
+
+
+def normalize_backend_name(backend: str) -> str:
+    """Normalize backend aliases to the filename convention used in results."""
+    backend_norm = backend.lower()
+    if backend_norm in ("xgboost", "xgb"):
+        return "xgb"
+    if backend_norm in ("decisiontree", "decision-tree", "decision_tree"):
+        return "decision_tree"
+    if backend_norm == "catboost":
+        return "catboost"
+    return backend_norm
+
+
+def backend_display_name(backend: str) -> str:
+    """Pretty display names for reports."""
+    backend_norm = normalize_backend_name(backend)
+    if backend_norm == "xgb":
+        return "XGBoost"
+    if backend_norm == "catboost":
+        return "CatBoost"
+    if backend_norm == "decision_tree":
+        return "DecisionTree"
+    return backend
 
 
 def get_encoding_suffix(encoding: str) -> str:
@@ -67,7 +91,7 @@ def load_per_target_metrics(
     encoding : str
         Encoding type (OneHot, kmer, bulges, etc.)
     model_backend : str
-        Model backend (xgb or catboost)
+        Model backend (xgb, catboost, or decision_tree)
     metric : str
         Metric name (aupr, accuracy, pearson, etc.)
     data_type : str
@@ -82,6 +106,8 @@ def load_per_target_metrics(
     np.ndarray or None
         Array of metric values per target, or None if file not found
     """
+    model_backend = normalize_backend_name(model_backend)
+
     # Build filename based on actual file naming convention
     # Format: {data_type}_{model_type}_results_{backend}_model_all_10_folds[_with_distance]_imbalanced{encoding_suffix}.csv
     
@@ -375,47 +401,79 @@ def compare_multiple_methods(
 
 def run_backend_comparison(
     encodings: List[str],
+    backends: List[str],
     metric: str,
     data_type: str = 'CHANGEseq',
     model_type: str = 'classifier',
     with_distance: bool = True
 ) -> pd.DataFrame:
     """
-    Compare XGBoost vs CatBoost for each encoding.
+    Compare backends pairwise for each encoding.
     
     Returns:
     --------
     pd.DataFrame : Results for all encoding comparisons
     """
     results_list = []
+    backends_norm = [normalize_backend_name(backend) for backend in backends]
+    backends_norm = list(dict.fromkeys(backends_norm))
+
+    if len(backends_norm) < 2:
+        print("Warning: Need at least 2 backends for backend comparison")
+        return pd.DataFrame(results_list)
     
     print(f"\n{'='*80}")
-    print(f"Backend Comparison (XGBoost vs CatBoost) - {data_type} - {model_type}")
+    print(f"Backend Comparison (Pairwise) - {data_type} - {model_type}")
     print(f"Metric: {metric} | Distance: {with_distance}")
+    print(f"Backends: {', '.join(backend_display_name(b) for b in backends_norm)}")
     print(f"{'='*80}\n")
     
     for encoding in encodings:
-        xgb_data = load_per_target_metrics(
-            encoding, 'xgb', metric, data_type, model_type, with_distance
-        )
-        cat_data = load_per_target_metrics(
-            encoding, 'catboost', metric, data_type, model_type, with_distance
-        )
-        
-        if xgb_data is not None and cat_data is not None:
+        backend_data = {}
+        for backend in backends_norm:
+            data = load_per_target_metrics(
+                encoding, backend, metric, data_type, model_type, with_distance
+            )
+            if data is not None:
+                backend_data[backend] = data
+
+        if len(backend_data) < 2:
+            continue
+
+        backend_pairs = list(itertools.combinations(backend_data.keys(), 2))
+        n_comparisons = len(backend_pairs)
+        bonferroni_alpha = 0.05 / n_comparisons if n_comparisons > 0 else 0.05
+
+        for b1, b2 in backend_pairs:
             result = compare_two_methods(
-                cat_data, xgb_data,
-                f'CatBoost',
-                f'XGBoost',
+                backend_data[b1], backend_data[b2],
+                backend_display_name(b1),
+                backend_display_name(b2),
                 metric
             )
             result['encoding'] = encoding
+            result['backend1'] = b1
+            result['backend2'] = b2
+            if pd.isna(result['p_value']):
+                result['p_value_bonferroni'] = np.nan
+                result['significant_bonferroni'] = False
+            else:
+                result['p_value_bonferroni'] = min(result['p_value'] * n_comparisons, 1.0)
+                result['significant_bonferroni'] = result['p_value'] < bonferroni_alpha
             results_list.append(result)
-            
-            # Print summary
-            print(f"{encoding:20s} | CatBoost: {result['mean_method1']:.4f} vs XGBoost: {result['mean_method2']:.4f} "
-                  f"| p={result['p_value']:.4f} {'***' if result['significant_0.001'] else '**' if result['significant_0.01'] else '*' if result['significant_0.05'] else 'ns'} "
-                  f"| Winner: {result['winner']}")
+
+            p_val = result['p_value']
+            if pd.isna(p_val):
+                marker = 'na'
+                p_print = 'nan'
+            else:
+                marker = '***' if result['significant_0.001'] else '**' if result['significant_0.01'] else '*' if result['significant_0.05'] else 'ns'
+                p_print = f"{p_val:.4f}"
+            print(
+                f"{encoding:20s} | {result['method1']}: {result['mean_method1']:.4f} "
+                f"vs {result['method2']}: {result['mean_method2']:.4f} "
+                f"| p={p_print} {marker} | Winner: {result['winner']}"
+            )
     
     return pd.DataFrame(results_list)
 
@@ -515,23 +573,26 @@ def generate_summary_table(
         for metric in metrics:
             # Backend comparison
             backend_df = run_backend_comparison(
-                encodings, metric, data_type, model_type, with_distance
+                encodings, backends, metric, data_type, model_type, with_distance
             )
             
-            for _, row in backend_df.iterrows():
-                summary_rows.append({
-                    'data_type': data_type,
-                    'metric': metric,
-                    'comparison_type': 'Backend',
-                    'encoding': row['encoding'],
-                    'method1': 'CatBoost',
-                    'method2': 'XGBoost',
-                    'p_value': row['p_value'],
-                    'winner': row['winner'],
-                    'mean_method1': row['mean_method1'],
-                    'mean_method2': row['mean_method2'],
-                    'significant': row['significant_0.05']
-                })
+            if not backend_df.empty:
+                for _, row in backend_df.iterrows():
+                    summary_rows.append({
+                        'data_type': data_type,
+                        'metric': metric,
+                        'comparison_type': 'Backend_pairwise',
+                        'encoding': row['encoding'],
+                        'method1': row['method1'],
+                        'method2': row['method2'],
+                        'p_value': row['p_value'],
+                        'p_value_bonferroni': row.get('p_value_bonferroni', np.nan),
+                        'winner': row['winner'],
+                        'mean_method1': row['mean_method1'],
+                        'mean_method2': row['mean_method2'],
+                        'significant': row['significant_0.05'],
+                        'significant_bonferroni': row.get('significant_bonferroni', False)
+                    })
             
             # Encoding comparison for each backend
             for backend in backends:
@@ -549,11 +610,30 @@ def generate_summary_table(
                             'method1': row['method1'],
                             'method2': row['method2'],
                             'p_value': row['p_value'],
+                            'p_value_bonferroni': row.get('p_value_bonferroni', np.nan),
                             'winner': row['winner'],
                             'mean_method1': np.nan,
                             'mean_method2': np.nan,
-                            'significant': row['significant_0.05']
+                            'significant': row['significant_0.05'],
+                            'significant_bonferroni': row.get('significant_bonferroni', False)
                         })
+                elif 'pairwise_result' in enc_result:
+                    row = enc_result['pairwise_result']
+                    summary_rows.append({
+                        'data_type': data_type,
+                        'metric': metric,
+                        'comparison_type': f'Encoding_{backend}',
+                        'encoding': 'Pairwise',
+                        'method1': row['method1'],
+                        'method2': row['method2'],
+                        'p_value': row['p_value'],
+                        'p_value_bonferroni': np.nan,
+                        'winner': row['winner'],
+                        'mean_method1': row['mean_method1'],
+                        'mean_method2': row['mean_method2'],
+                        'significant': row['significant_0.05'],
+                        'significant_bonferroni': False
+                    })
     
     summary_df = pd.DataFrame(summary_rows)
     
@@ -571,7 +651,7 @@ def main():
     # Define parameters
     encodings = ['NPM', 'OneHot', 'OneHot5Channel', 'OneHotVstack', 'kmer', 
                  'LabelEncodingPairwise', 'bulges', 'MM']
-    backends = ['xgb', 'catboost']
+    backends = ['xgb', 'catboost', 'decision_tree']
     
     # Classification metrics
     classification_metrics = ['aupr', 'auc', 'accuracy', 'pearson', 'spearman', 

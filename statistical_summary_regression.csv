@@ -1,129 +1,217 @@
-data_type,metric,comparison_type,encoding,method1,method2,p_value,winner,mean_method1,mean_method2,significant
-CHANGEseq,pearson_after_inv_trans,Backend,NPM,CatBoost,XGBoost,0.0005774955413146588,CatBoost,0.6351810092795698,0.5964987610437308,True
-CHANGEseq,pearson_after_inv_trans,Backend,OneHot,CatBoost,XGBoost,0.0003192241680392993,CatBoost,0.5736173501656691,0.5256764513003621,True
-CHANGEseq,pearson_after_inv_trans,Backend,OneHot5Channel,CatBoost,XGBoost,5.155753141959115e-10,CatBoost,0.616840484303579,0.5465338907999652,True
-CHANGEseq,pearson_after_inv_trans,Backend,OneHotVstack,CatBoost,XGBoost,1.4475771074150803e-10,CatBoost,0.5937779808071193,0.5023054871426682,True
-CHANGEseq,pearson_after_inv_trans,Backend,kmer,CatBoost,XGBoost,2.41328243944137e-19,CatBoost,0.3619739556496156,0.3151046496456943,True
-CHANGEseq,pearson_after_inv_trans,Backend,LabelEncodingPairwise,CatBoost,XGBoost,7.173104920125957e-07,CatBoost,0.5723667214099721,0.4843359574848744,True
-CHANGEseq,pearson_after_inv_trans,Backend,bulges,CatBoost,XGBoost,2.487605589237596e-05,CatBoost,0.636374594610973,0.6017837620833295,True
-CHANGEseq,pearson_after_inv_trans,Backend,MM,CatBoost,XGBoost,2.549763309710142e-19,CatBoost,0.36079123081906855,0.3151046496456943,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,OneHot,8.523228870268424e-08,NPM,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,OneHot5Channel,1.1912849967316228e-05,NPM,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,OneHotVstack,5.255946727661397e-10,NPM,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,kmer,4.9702834601934116e-18,NPM,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,LabelEncodingPairwise,1.261725078784087e-09,NPM,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,bulges,0.2704728023521492,No diff,,,False
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,MM,4.9702834601934116e-18,NPM,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot,OneHot5Channel,0.00514173590138417,OneHot5Channel,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot,OneHotVstack,0.05135705083852095,No diff,,,False
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot,kmer,1.827604072577997e-11,OneHot,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot,LabelEncodingPairwise,0.00199300648336813,OneHot,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot,bulges,2.9179259112846428e-09,bulges,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot,MM,1.827604072577997e-11,OneHot,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,OneHotVstack,1.4453838222541392e-05,OneHot5Channel,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,kmer,6.585547938561033e-13,OneHot5Channel,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,LabelEncodingPairwise,5.403511481168228e-06,OneHot5Channel,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,bulges,2.806100437292212e-06,bulges,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,MM,6.585547938561033e-13,OneHot5Channel,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,kmer,2.7103577864217263e-09,OneHotVstack,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,LabelEncodingPairwise,0.21125804622827726,No diff,,,False
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,bulges,1.5802242527144832e-11,bulges,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,MM,2.7103577864217263e-09,OneHotVstack,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,kmer,LabelEncodingPairwise,1.058496326655014e-07,LabelEncodingPairwise,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,kmer,bulges,2.0625257889067294e-18,bulges,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,kmer,MM,0.7466737197676384,No diff,,,False
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,LabelEncodingPairwise,bulges,8.792235013811872e-11,bulges,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,LabelEncodingPairwise,MM,1.058496326655014e-07,LabelEncodingPairwise,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,bulges,MM,2.0625257889067294e-18,bulges,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,OneHot,2.762474870956317e-11,NPM,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,OneHot5Channel,0.020486271422737158,NPM,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,OneHotVstack,2.561762105771001e-07,NPM,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,kmer,3.090276051159025e-19,NPM,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,LabelEncodingPairwise,2.724202267783446e-12,NPM,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,bulges,0.8147506679435857,No diff,,,False
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,MM,2.9252331831645265e-19,NPM,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot,OneHot5Channel,3.7085161631886504e-06,OneHot5Channel,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot,OneHotVstack,0.008880453593247298,OneHotVstack,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot,kmer,2.4616712880236633e-17,OneHot,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot,LabelEncodingPairwise,0.4840008554493862,No diff,,,False
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot,bulges,7.794131183525982e-11,bulges,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot,MM,2.1063517954621787e-17,OneHot,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,OneHotVstack,0.0029166463421838565,OneHot5Channel,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,kmer,4.9445953622433644e-17,OneHot5Channel,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,LabelEncodingPairwise,4.006850607350664e-05,OneHot5Channel,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,bulges,0.02236771683407044,bulges,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,MM,4.347639348913468e-17,OneHot5Channel,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,kmer,1.51924599867791e-16,OneHotVstack,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,LabelEncodingPairwise,0.00819734329909124,OneHotVstack,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,bulges,2.4987214646963367e-08,bulges,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,MM,1.2092875277838894e-16,OneHotVstack,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,kmer,LabelEncodingPairwise,3.8113601801553634e-18,LabelEncodingPairwise,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,kmer,bulges,2.102859228438897e-19,bulges,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,kmer,MM,0.5304467136073835,No diff,,,False
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,LabelEncodingPairwise,bulges,7.748400374252761e-12,bulges,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,LabelEncodingPairwise,MM,2.695270394376686e-18,LabelEncodingPairwise,,,True
-CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,bulges,MM,1.9900480071212017e-19,bulges,,,True
-CHANGEseq,spearman_after_inv_trans,Backend,NPM,CatBoost,XGBoost,5.693229587118446e-15,CatBoost,0.11993323304399506,0.11515417094440898,True
-CHANGEseq,spearman_after_inv_trans,Backend,OneHot,CatBoost,XGBoost,4.2922837657346513e-19,CatBoost,0.11512493026593913,0.08845602969801757,True
-CHANGEseq,spearman_after_inv_trans,Backend,OneHot5Channel,CatBoost,XGBoost,2.9252331831645265e-19,CatBoost,0.11622151047243022,0.0938958848300309,True
-CHANGEseq,spearman_after_inv_trans,Backend,OneHotVstack,CatBoost,XGBoost,6.520862099343625e-19,CatBoost,0.11565643248648587,0.0807752598238957,True
-CHANGEseq,spearman_after_inv_trans,Backend,kmer,CatBoost,XGBoost,6.391333096148062e-17,CatBoost,0.10541539061316993,0.09872712165755163,True
-CHANGEseq,spearman_after_inv_trans,Backend,LabelEncodingPairwise,CatBoost,XGBoost,1.6403128352662267e-19,CatBoost,0.11779087122079958,0.09093344103548393,True
-CHANGEseq,spearman_after_inv_trans,Backend,bulges,CatBoost,XGBoost,5.582156250641428e-15,CatBoost,0.11978377916698316,0.11502457138619383,True
-CHANGEseq,spearman_after_inv_trans,Backend,MM,CatBoost,XGBoost,1.282979094381681e-17,CatBoost,0.10560437492882223,0.09872712165755163,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,OneHot,2.487611907733975e-18,NPM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,OneHot5Channel,4.129288147952721e-17,NPM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,OneHotVstack,3.642616660210945e-19,NPM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,kmer,5.972925649550654e-15,NPM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,LabelEncodingPairwise,2.612597502765214e-19,NPM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,bulges,0.6634741531790977,No diff,,,False
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,MM,5.972925649550654e-15,NPM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot,OneHot5Channel,0.0008044126832443376,OneHot5Channel,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot,OneHotVstack,3.6076411267699365e-05,OneHot,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot,kmer,6.220302044411456e-05,kmer,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot,LabelEncodingPairwise,0.3668232132191036,No diff,,,False
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot,bulges,2.695270394376686e-18,bulges,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot,MM,6.220302044411456e-05,MM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,OneHotVstack,8.162695347357542e-10,OneHot5Channel,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,kmer,0.008880453593247298,kmer,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,LabelEncodingPairwise,0.0026155341137133995,OneHot5Channel,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,bulges,2.3371110534358824e-17,bulges,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,MM,0.008880453593247298,MM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,kmer,4.656147139947576e-12,kmer,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,LabelEncodingPairwise,0.0014176179154937304,LabelEncodingPairwise,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,bulges,2.0456853684471272e-19,bulges,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,MM,4.656147139947576e-12,MM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,kmer,LabelEncodingPairwise,1.9783839009221897e-05,kmer,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,kmer,bulges,1.192454211753688e-14,bulges,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,kmer,MM,,No diff,,,False
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,LabelEncodingPairwise,bulges,2.1490497486456183e-19,bulges,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,LabelEncodingPairwise,MM,1.9783839009221897e-05,MM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,bulges,MM,1.192454211753688e-14,bulges,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,OneHot,2.2534903255098625e-14,NPM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,OneHot5Channel,1.2530063882172441e-11,NPM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,OneHotVstack,1.3108876881624836e-14,NPM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,kmer,4.658787932195035e-19,NPM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,LabelEncodingPairwise,3.4295160198223353e-09,NPM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,bulges,0.49427407805172585,No diff,,,False
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,MM,8.47514795097187e-19,NPM,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot,OneHot5Channel,0.00143385495673549,OneHot5Channel,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot,OneHotVstack,0.8157996051358722,No diff,,,False
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot,kmer,1.6198402416745655e-12,OneHot,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot,LabelEncodingPairwise,0.04213449794940741,LabelEncodingPairwise,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot,bulges,1.5015283541592826e-12,bulges,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot,MM,4.1846970697696256e-12,OneHot,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,OneHotVstack,0.017869807174664715,OneHot5Channel,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,kmer,2.694747822584298e-15,OneHot5Channel,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,LabelEncodingPairwise,0.6065922301402735,No diff,,,False
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,bulges,8.301338173490453e-11,bulges,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,MM,3.192991290964935e-15,OneHot5Channel,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,kmer,1.310986261367655e-14,OneHotVstack,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,LabelEncodingPairwise,0.007730746035127409,LabelEncodingPairwise,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,bulges,2.420113364811244e-14,bulges,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,MM,2.6563065338846212e-14,OneHotVstack,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,kmer,LabelEncodingPairwise,6.496146740195861e-16,LabelEncodingPairwise,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,kmer,bulges,2.768904725271747e-19,bulges,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,kmer,MM,0.672302831836946,No diff,,,False
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,LabelEncodingPairwise,bulges,3.977307035972071e-08,bulges,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,LabelEncodingPairwise,MM,5.882466057965312e-16,LabelEncodingPairwise,,,True
-CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,bulges,MM,3.954290778097662e-19,bulges,,,True
+data_type,metric,comparison_type,encoding,method1,method2,p_value,p_value_bonferroni,winner,mean_method1,mean_method2,significant,significant_bonferroni
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,NPM,XGBoost,CatBoost,0.0005774955413146588,0.0017324866239439764,CatBoost,0.5964987610437308,0.6351810092795698,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,NPM,XGBoost,DecisionTree,5.960464477539063e-08,1.7881393432617188e-07,XGBoost,0.5964987610437308,0.014483529744089675,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,NPM,CatBoost,DecisionTree,5.960464477539063e-08,1.7881393432617188e-07,CatBoost,0.6351810092795698,0.014483529744089675,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,OneHot,XGBoost,CatBoost,0.0003192241680392993,0.0009576725041178978,CatBoost,0.5256764513003621,0.5736173501656691,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,OneHot,XGBoost,DecisionTree,2.386484752546066e-10,7.159454257638198e-10,XGBoost,0.5256764513003621,0.037978769248874715,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,OneHot,CatBoost,DecisionTree,2.386484752546066e-10,7.159454257638198e-10,CatBoost,0.5736173501656691,0.037978769248874715,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,OneHot5Channel,XGBoost,CatBoost,5.155753141959115e-10,1.5467259425877345e-09,CatBoost,0.5465338907999652,0.616840484303579,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,OneHot5Channel,XGBoost,DecisionTree,8.055970661358803e-14,2.416791198407641e-13,XGBoost,0.5465338907999652,0.0022244989513217858,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,OneHot5Channel,CatBoost,DecisionTree,7.732733053009578e-14,2.3198199159028734e-13,CatBoost,0.616840484303579,0.0022244989513217858,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,OneHotVstack,XGBoost,CatBoost,1.4475771074150803e-10,4.342731322245241e-10,CatBoost,0.5023054871426682,0.5937779808071193,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,OneHotVstack,XGBoost,DecisionTree,2.3900953516978203e-11,7.17028605509346e-11,XGBoost,0.5023054871426682,0.016852719928114695,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,OneHotVstack,CatBoost,DecisionTree,2.3900953516978203e-11,7.17028605509346e-11,CatBoost,0.5937779808071193,0.016852719928114695,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,kmer,XGBoost,CatBoost,2.41328243944137e-19,7.2398473183241095e-19,CatBoost,0.3151046496456943,0.3619739556496156,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,kmer,XGBoost,DecisionTree,1.3514423764300188e-19,4.0543271292900562e-19,XGBoost,0.3151046496456943,0.025710825412010387,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,kmer,CatBoost,DecisionTree,1.3145084606842484e-19,3.943525382052745e-19,CatBoost,0.3619739556496156,0.025710825412010387,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,LabelEncodingPairwise,XGBoost,CatBoost,7.173104920125957e-07,2.1519314760377873e-06,CatBoost,0.4843359574848744,0.5723667214099721,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,LabelEncodingPairwise,XGBoost,DecisionTree,1.4685083764479299e-19,4.40552512934379e-19,XGBoost,0.4843359574848744,0.08807246711395302,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,LabelEncodingPairwise,CatBoost,DecisionTree,1.2785723680814605e-19,3.8357171042443814e-19,CatBoost,0.5723667214099721,0.08807246711395302,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,bulges,XGBoost,CatBoost,2.487605589237596e-05,7.462816767712788e-05,CatBoost,0.6017837620833295,0.636374594610973,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,bulges,XGBoost,DecisionTree,3.503864964208263e-10,1.0511594892624789e-09,XGBoost,0.6017837620833295,0.03038744628396708,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,bulges,CatBoost,DecisionTree,3.503864964208263e-10,1.0511594892624789e-09,CatBoost,0.636374594610973,0.03038744628396708,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,MM,XGBoost,CatBoost,2.549763309710142e-19,7.649289929130426e-19,CatBoost,0.3151046496456943,0.36079123081906855,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,MM,XGBoost,DecisionTree,1.3145084606842484e-19,3.943525382052745e-19,XGBoost,0.3151046496456943,0.031076333963672983,True,True
+CHANGEseq,pearson_after_inv_trans,Backend_pairwise,MM,CatBoost,DecisionTree,1.2785723680814605e-19,3.8357171042443814e-19,CatBoost,0.36079123081906855,0.031076333963672983,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,OneHot,8.523228870268424e-08,2.386504083675159e-06,NPM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,OneHot5Channel,1.1912849967316228e-05,0.00033355979908485437,NPM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,OneHotVstack,5.255946727661397e-10,1.4716650837451912e-08,NPM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,kmer,4.9702834601934116e-18,1.3916793688541553e-16,NPM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,LabelEncodingPairwise,1.261725078784087e-09,3.532830220595444e-08,NPM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,bulges,0.2704728023521492,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,NPM,MM,4.9702834601934116e-18,1.3916793688541553e-16,NPM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot,OneHot5Channel,0.00514173590138417,0.14396860523875676,OneHot5Channel,,,True,False
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot,OneHotVstack,0.05135705083852095,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot,kmer,1.827604072577997e-11,5.117291403218392e-10,OneHot,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot,LabelEncodingPairwise,0.00199300648336813,0.05580418153430764,OneHot,,,True,False
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot,bulges,2.9179259112846428e-09,8.170192551596999e-08,bulges,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot,MM,1.827604072577997e-11,5.117291403218392e-10,OneHot,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,OneHotVstack,1.4453838222541392e-05,0.000404707470231159,OneHot5Channel,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,kmer,6.585547938561033e-13,1.8439534227970892e-11,OneHot5Channel,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,LabelEncodingPairwise,5.403511481168228e-06,0.0001512983214727104,OneHot5Channel,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,bulges,2.806100437292212e-06,7.857081224418194e-05,bulges,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,MM,6.585547938561033e-13,1.8439534227970892e-11,OneHot5Channel,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,kmer,2.7103577864217263e-09,7.589001801980834e-08,OneHotVstack,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,LabelEncodingPairwise,0.21125804622827726,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,bulges,1.5802242527144832e-11,4.424627907600553e-10,bulges,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,MM,2.7103577864217263e-09,7.589001801980834e-08,OneHotVstack,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,kmer,LabelEncodingPairwise,1.058496326655014e-07,2.963789714634039e-06,LabelEncodingPairwise,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,kmer,bulges,2.0625257889067294e-18,5.775072208938843e-17,bulges,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,kmer,MM,0.7466737197676384,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,LabelEncodingPairwise,bulges,8.792235013811872e-11,2.461825803867324e-09,bulges,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,LabelEncodingPairwise,MM,1.058496326655014e-07,2.963789714634039e-06,LabelEncodingPairwise,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_xgb,Multiple,bulges,MM,2.0625257889067294e-18,5.775072208938843e-17,bulges,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,OneHot,2.762474870956317e-11,7.734929638677688e-10,NPM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,OneHot5Channel,0.020486271422737158,0.5736155998366405,NPM,,,True,False
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,OneHotVstack,2.561762105771001e-07,7.172933896158802e-06,NPM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,kmer,3.090276051159025e-19,8.65277294324527e-18,NPM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,LabelEncodingPairwise,2.724202267783446e-12,7.627766349793649e-11,NPM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,bulges,0.8147506679435857,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,NPM,MM,2.9252331831645265e-19,8.190652912860675e-18,NPM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot,OneHot5Channel,3.7085161631886504e-06,0.00010383845256928221,OneHot5Channel,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot,OneHotVstack,0.008880453593247298,0.24865270061092437,OneHotVstack,,,True,False
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot,kmer,2.4616712880236633e-17,6.892679606466258e-16,OneHot,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot,LabelEncodingPairwise,0.4840008554493862,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot,bulges,7.794131183525982e-11,2.182356731387275e-09,bulges,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot,MM,2.1063517954621787e-17,5.8977850272941e-16,OneHot,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,OneHotVstack,0.0029166463421838565,0.08166609758114798,OneHot5Channel,,,True,False
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,kmer,4.9445953622433644e-17,1.384486701428142e-15,OneHot5Channel,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,LabelEncodingPairwise,4.006850607350664e-05,0.0011219181700581858,OneHot5Channel,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,bulges,0.02236771683407044,0.6262960713539724,bulges,,,True,False
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,MM,4.347639348913468e-17,1.2173390176957712e-15,OneHot5Channel,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,kmer,1.51924599867791e-16,4.253888796298148e-15,OneHotVstack,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,LabelEncodingPairwise,0.00819734329909124,0.22952561237455474,OneHotVstack,,,True,False
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,bulges,2.4987214646963367e-08,6.996420101149743e-07,bulges,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,MM,1.2092875277838894e-16,3.3860050777948905e-15,OneHotVstack,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,kmer,LabelEncodingPairwise,3.8113601801553634e-18,1.0671808504435018e-16,LabelEncodingPairwise,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,kmer,bulges,2.102859228438897e-19,5.888005839628911e-18,bulges,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,kmer,MM,0.5304467136073835,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,LabelEncodingPairwise,bulges,7.748400374252761e-12,2.169552104790773e-10,bulges,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,LabelEncodingPairwise,MM,2.695270394376686e-18,7.54675710425472e-17,LabelEncodingPairwise,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_catboost,Multiple,bulges,MM,1.9900480071212017e-19,5.572134419939365e-18,bulges,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,NPM,OneHot,0.000244140625,0.0068359375,OneHot,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,NPM,OneHot5Channel,0.17535400390625,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,NPM,OneHotVstack,0.5660676956176758,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,NPM,kmer,0.00028705596923828125,0.008037567138671875,kmer,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,NPM,LabelEncodingPairwise,5.960464477539062e-07,1.6689300537109375e-05,LabelEncodingPairwise,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,NPM,bulges,0.0289306640625,0.81005859375,bulges,,,True,False
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,NPM,MM,0.0001398921012878418,0.00391697883605957,MM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHot,OneHot5Channel,0.024712023870961275,0.6919366683869157,OneHot,,,True,False
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHot,OneHotVstack,0.1899040937423706,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHot,kmer,0.20081801494050444,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHot,LabelEncodingPairwise,1.9419829566621737e-05,0.0005437552278654087,LabelEncodingPairwise,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHot,bulges,0.09002415090799332,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHot,MM,0.11204430781459418,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHot5Channel,OneHotVstack,5.845885789312888e-05,0.0016368480210076086,OneHotVstack,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHot5Channel,kmer,0.0013870877832685355,0.038838457931518994,kmer,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHot5Channel,LabelEncodingPairwise,2.312984610111815e-13,6.4763569083130815e-12,LabelEncodingPairwise,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHot5Channel,bulges,0.00041403656359761953,0.011593023780733347,bulges,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHot5Channel,MM,7.295706556932911e-06,0.0002042797835941215,MM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHotVstack,kmer,0.4280473482759819,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHotVstack,LabelEncodingPairwise,2.3900953516978203e-11,6.692266984753897e-10,LabelEncodingPairwise,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHotVstack,bulges,0.19807579927146435,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,OneHotVstack,MM,0.0002746307534656576,0.0076896610970384124,MM,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,kmer,LabelEncodingPairwise,4.0420178442362593e-14,1.1317649963861526e-12,LabelEncodingPairwise,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,kmer,bulges,0.18972400736088346,1.0,No diff,,,False,False
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,kmer,MM,0.009038992828681385,0.2530917992030788,MM,,,True,False
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,LabelEncodingPairwise,bulges,1.823834414422104e-06,5.106736360381891e-05,LabelEncodingPairwise,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,LabelEncodingPairwise,MM,2.1635618681695108e-16,6.05797323087463e-15,LabelEncodingPairwise,,,True,True
+CHANGEseq,pearson_after_inv_trans,Encoding_decision_tree,Multiple,bulges,MM,0.001149314096191084,0.03218079469335035,MM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,NPM,XGBoost,CatBoost,5.693229587118446e-15,1.707968876135534e-14,CatBoost,0.11515417094440898,0.11993323304399506,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,NPM,XGBoost,DecisionTree,1.4901161193847656e-06,4.470348358154297e-06,XGBoost,0.11515417094440898,0.02015491220947052,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,NPM,CatBoost,DecisionTree,1.4901161193847656e-06,4.470348358154297e-06,CatBoost,0.11993323304399506,0.02015491220947052,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,OneHot,XGBoost,CatBoost,4.2922837657346513e-19,1.2876851297203954e-18,CatBoost,0.08845602969801757,0.11512493026593913,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,OneHot,XGBoost,DecisionTree,2.5356201184257893e-06,7.606860355277368e-06,XGBoost,0.08845602969801757,0.037052470450853706,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,OneHot,CatBoost,DecisionTree,1.1683486049300831e-07,3.5050458147902494e-07,CatBoost,0.11512493026593913,0.037052470450853706,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,OneHot5Channel,XGBoost,CatBoost,2.9252331831645265e-19,8.77569954949358e-19,CatBoost,0.0938958848300309,0.11622151047243022,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,OneHot5Channel,XGBoost,DecisionTree,2.357974694989738e-12,7.0739240849692144e-12,XGBoost,0.0938958848300309,0.0031961014090171806,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,OneHot5Channel,CatBoost,DecisionTree,3.592882836369721e-13,1.0778648509109163e-12,CatBoost,0.11622151047243022,0.0031961014090171806,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,OneHotVstack,XGBoost,CatBoost,6.520862099343625e-19,1.9562586298030876e-18,CatBoost,0.0807752598238957,0.11565643248648587,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,OneHotVstack,XGBoost,DecisionTree,7.392769239955965e-09,2.2178307719867895e-08,XGBoost,0.0807752598238957,0.028179348042333806,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,OneHotVstack,CatBoost,DecisionTree,3.989178102249673e-11,1.1967534306749018e-10,CatBoost,0.11565643248648587,0.028179348042333806,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,kmer,XGBoost,CatBoost,6.391333096148062e-17,1.9173999288444188e-16,CatBoost,0.09872712165755163,0.10541539061316993,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,kmer,XGBoost,DecisionTree,1.067917554493226e-17,3.203752663479678e-17,XGBoost,0.09872712165755163,0.026547375574796358,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,kmer,CatBoost,DecisionTree,5.9821694962746335e-18,1.79465084888239e-17,CatBoost,0.10541539061316993,0.026547375574796358,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,LabelEncodingPairwise,XGBoost,CatBoost,1.6403128352662267e-19,4.92093850579868e-19,CatBoost,0.09093344103548393,0.11779087122079958,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,LabelEncodingPairwise,XGBoost,DecisionTree,4.470002199789718e-18,1.3410006599369153e-17,DecisionTree,0.09093344103548393,0.13145412797039668,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,LabelEncodingPairwise,CatBoost,DecisionTree,1.2105038921360939e-10,3.6315116764082813e-10,DecisionTree,0.11779087122079958,0.13145412797039668,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,bulges,XGBoost,CatBoost,5.582156250641428e-15,1.6746468751924285e-14,CatBoost,0.11502457138619383,0.11978377916698316,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,bulges,XGBoost,DecisionTree,2.09232210047112e-07,6.27696630141336e-07,XGBoost,0.11502457138619383,0.034488802858450934,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,bulges,CatBoost,DecisionTree,1.4827324560030555e-07,4.4481973680091664e-07,CatBoost,0.11978377916698316,0.034488802858450934,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,MM,XGBoost,CatBoost,1.282979094381681e-17,3.848937283145043e-17,CatBoost,0.09872712165755163,0.10560437492882223,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,MM,XGBoost,DecisionTree,1.1173656452646669e-12,3.3520969357940006e-12,XGBoost,0.09872712165755163,0.05218930108040887,True,True
+CHANGEseq,spearman_after_inv_trans,Backend_pairwise,MM,CatBoost,DecisionTree,1.4316810969208493e-13,4.295043290762548e-13,CatBoost,0.10560437492882223,0.05218930108040887,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,OneHot,2.487611907733975e-18,6.96531334165513e-17,NPM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,OneHot5Channel,4.129288147952721e-17,1.1562006814267618e-15,NPM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,OneHotVstack,3.642616660210945e-19,1.0199326648590645e-17,NPM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,kmer,5.972925649550654e-15,1.6724191818741833e-13,NPM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,LabelEncodingPairwise,2.612597502765214e-19,7.3152730077426e-18,NPM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,bulges,0.6634741531790977,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,NPM,MM,5.972925649550654e-15,1.6724191818741833e-13,NPM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot,OneHot5Channel,0.0008044126832443376,0.022523555130841453,OneHot5Channel,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot,OneHotVstack,3.6076411267699365e-05,0.0010101395154955822,OneHot,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot,kmer,6.220302044411456e-05,0.0017416845724352076,kmer,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot,LabelEncodingPairwise,0.3668232132191036,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot,bulges,2.695270394376686e-18,7.54675710425472e-17,bulges,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot,MM,6.220302044411456e-05,0.0017416845724352076,MM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,OneHotVstack,8.162695347357542e-10,2.2855546972601115e-08,OneHot5Channel,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,kmer,0.008880453593247298,0.24865270061092437,kmer,,,True,False
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,LabelEncodingPairwise,0.0026155341137133995,0.07323495518397519,OneHot5Channel,,,True,False
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,bulges,2.3371110534358824e-17,6.543910949620471e-16,bulges,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHot5Channel,MM,0.008880453593247298,0.24865270061092437,MM,,,True,False
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,kmer,4.656147139947576e-12,1.303721199185321e-10,kmer,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,LabelEncodingPairwise,0.0014176179154937304,0.03969330163382445,LabelEncodingPairwise,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,bulges,2.0456853684471272e-19,5.727919031651956e-18,bulges,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,OneHotVstack,MM,4.656147139947576e-12,1.303721199185321e-10,MM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,kmer,LabelEncodingPairwise,1.9783839009221897e-05,0.0005539474922582131,kmer,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,kmer,bulges,1.192454211753688e-14,3.3388717929103264e-13,bulges,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,kmer,MM,,,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,LabelEncodingPairwise,bulges,2.1490497486456183e-19,6.017339296207732e-18,bulges,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,LabelEncodingPairwise,MM,1.9783839009221897e-05,0.0005539474922582131,MM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_xgb,Multiple,bulges,MM,1.192454211753688e-14,3.3388717929103264e-13,bulges,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,OneHot,2.2534903255098625e-14,6.309772911427615e-13,NPM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,OneHot5Channel,1.2530063882172441e-11,3.5084178870082833e-10,NPM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,OneHotVstack,1.3108876881624836e-14,3.6704855268549543e-13,NPM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,kmer,4.658787932195035e-19,1.3044606210146098e-17,NPM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,LabelEncodingPairwise,3.4295160198223353e-09,9.602644855502539e-08,NPM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,bulges,0.49427407805172585,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,NPM,MM,8.47514795097187e-19,2.3730414262721235e-17,NPM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot,OneHot5Channel,0.00143385495673549,0.04014793878859372,OneHot5Channel,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot,OneHotVstack,0.8157996051358722,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot,kmer,1.6198402416745655e-12,4.535552676688783e-11,OneHot,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot,LabelEncodingPairwise,0.04213449794940741,1.0,LabelEncodingPairwise,,,True,False
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot,bulges,1.5015283541592826e-12,4.2042793916459917e-11,bulges,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot,MM,4.1846970697696256e-12,1.1717151795354952e-10,OneHot,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,OneHotVstack,0.017869807174664715,0.500354600890612,OneHot5Channel,,,True,False
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,kmer,2.694747822584298e-15,7.545293903236034e-14,OneHot5Channel,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,LabelEncodingPairwise,0.6065922301402735,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,bulges,8.301338173490453e-11,2.324374688577327e-09,bulges,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHot5Channel,MM,3.192991290964935e-15,8.940375614701818e-14,OneHot5Channel,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,kmer,1.310986261367655e-14,3.6707615318294337e-13,OneHotVstack,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,LabelEncodingPairwise,0.007730746035127409,0.21646088898356744,LabelEncodingPairwise,,,True,False
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,bulges,2.420113364811244e-14,6.776317421471482e-13,bulges,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,OneHotVstack,MM,2.6563065338846212e-14,7.437658294876939e-13,OneHotVstack,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,kmer,LabelEncodingPairwise,6.496146740195861e-16,1.818921087254841e-14,LabelEncodingPairwise,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,kmer,bulges,2.768904725271747e-19,7.752933230760891e-18,bulges,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,kmer,MM,0.672302831836946,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,LabelEncodingPairwise,bulges,3.977307035972071e-08,1.1136459700721798e-06,bulges,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,LabelEncodingPairwise,MM,5.882466057965312e-16,1.6470904962302874e-14,LabelEncodingPairwise,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_catboost,Multiple,bulges,MM,3.954290778097662e-19,1.1072014178673455e-17,bulges,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,NPM,OneHot,0.001708984375,0.0478515625,OneHot,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,NPM,OneHot5Channel,0.05767822265625,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,NPM,OneHotVstack,0.7502379417419434,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,NPM,kmer,0.0011548399925231934,0.032335519790649414,kmer,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,NPM,LabelEncodingPairwise,2.980232238769531e-07,8.344650268554688e-06,LabelEncodingPairwise,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,NPM,bulges,0.044559478759765625,1.0,bulges,,,True,False
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,NPM,MM,5.3882598876953125e-05,0.0015087127685546875,MM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHot,OneHot5Channel,0.007235796054374077,0.20260228952247417,OneHot,,,True,False
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHot,OneHotVstack,0.6893201172351837,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHot,kmer,0.7871530827616067,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHot,LabelEncodingPairwise,9.915668738624432e-09,2.776387246814841e-07,LabelEncodingPairwise,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHot,bulges,0.6455853804945946,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHot,MM,0.0003423559641874308,0.009585966997248063,MM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHot5Channel,OneHotVstack,2.6737125153886154e-06,7.486395043088123e-05,OneHotVstack,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHot5Channel,kmer,0.00026239110146712697,0.007346950841079555,kmer,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHot5Channel,LabelEncodingPairwise,8.055970661358803e-14,2.255671785180465e-12,LabelEncodingPairwise,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHot5Channel,bulges,3.5575067158788443e-06,9.961018804460764e-05,bulges,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHot5Channel,MM,3.2251150306302846e-07,9.030322085764797e-06,MM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHotVstack,kmer,0.8621771225118494,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHotVstack,LabelEncodingPairwise,2.3900953516978203e-11,6.692266984753897e-10,LabelEncodingPairwise,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHotVstack,bulges,0.308520769700408,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,OneHotVstack,MM,3.5296478917583985e-05,0.0009883014096923517,MM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,kmer,LabelEncodingPairwise,1.5406691870187937e-17,4.3138737236526224e-16,LabelEncodingPairwise,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,kmer,bulges,0.0742685067560369,1.0,No diff,,,False,False
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,kmer,MM,3.1568914514591315e-06,8.839296064085568e-05,MM,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,LabelEncodingPairwise,bulges,1.6394876893071334e-08,4.5905655300599734e-07,LabelEncodingPairwise,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,LabelEncodingPairwise,MM,3.6989235791727996e-17,1.0356986021683839e-15,LabelEncodingPairwise,,,True,True
+CHANGEseq,spearman_after_inv_trans,Encoding_decision_tree,Multiple,bulges,MM,0.00033306437309692466,0.009325802446713891,MM,,,True,True
