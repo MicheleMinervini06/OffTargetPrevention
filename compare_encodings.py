@@ -35,6 +35,10 @@ ENCODINGS = ["NPM", "OneHot", "OneHot5Channel", "LabelEncodingPairwise", "OneHot
 DATA_TYPES = ["CHANGEseq", "GUIDEseq"]
 MODEL_TYPES = ["classifier", "regression_with_negatives"]
 
+# Model backends to evaluate (xgb, catboost, decision_tree)
+# Set to None to process all backends, or specify a list like ["xgb", "catboost"]
+MODEL_BACKENDS = ["xgb", "catboost", "decision_tree"]  # Add "decision_tree" if you have those results
+
 K_FOLD = 10
 INCLUDE_DISTANCE = True       # default: test "with distance" models
 INCLUDE_SEQUENCE = True
@@ -105,6 +109,19 @@ def _include_distance(encoding: str) -> bool:
     return ENCODING_DISTANCE_OVERRIDE.get(encoding, INCLUDE_DISTANCE)
 
 
+def _get_backend_label(filename: str) -> str:
+    """Extract backend label from filename (xgb, catboost, or decision_tree)."""
+    filename_lower = filename.lower()
+    if "catboost" in filename_lower:
+        return "catboost"
+    elif "xgb" in filename_lower:
+        return "xgb"
+    elif "decision_tree" in filename_lower or "dt" in filename_lower:
+        return "decision_tree"
+    else:
+        return "unknown"
+
+
 def _results_csv_path(encoding: str, data_type: str, model_type: str) -> Path:
     """Return the path where evaluation() saves its per-sgRNA results CSV."""
     path_prefix = f"CHANGEseq/include_on_targets/{model_type}/test_results_include_on_targets/"
@@ -169,6 +186,19 @@ def run_all():
     # Models are trained on CHANGE-seq folds: always use CHANGE-seq sgRNA ordering
     # for fold assignment, exactly as regular_test_models does.
     targets_change_seq = _load_changeseq_targets()
+    
+    # Determine which backends to process
+    backends_to_process = MODEL_BACKENDS if MODEL_BACKENDS is not None else ["xgb", "catboost", "decision_tree"]
+
+    # Initialize collection structure for each backend
+    if not hasattr(run_all, "_collected"):
+        run_all._collected = {
+            backend: {
+                "classifier": {dt: [] for dt in DATA_TYPES},
+                "regression_with_negatives": {dt: [] for dt in DATA_TYPES}
+            }
+            for backend in backends_to_process
+        }
 
     for encoding in ENCODINGS:
         print(f"\n{'='*60}")
@@ -180,64 +210,123 @@ def run_all():
             results_dir = Path("files") / "models_10_fold" / "new_models" / "CHANGEseq" / "include_on_targets" / "results" / encoding
             if not results_dir.exists():
                 print(f"  WARNING: results dir not found for encoding {encoding}: {results_dir}")
-                # append empty rows so encodings align
-                if not hasattr(run_all, "_collected"):
-                    run_all._collected = {"classifier": {dt: [] for dt in DATA_TYPES},
-                                           "regression_with_negatives": {dt: [] for dt in DATA_TYPES}}
-                run_all._collected["classifier"][data_type].append({"encoding": encoding})
-                run_all._collected["regression_with_negatives"][data_type].append({"encoding": encoding})
+                # append empty rows for all backends
+                for backend in backends_to_process:
+                    run_all._collected[backend]["classifier"][data_type].append({"encoding": encoding, "backend": backend})
+                    run_all._collected[backend]["regression_with_negatives"][data_type].append({"encoding": encoding, "backend": backend})
                 continue
 
             csv_files = list(results_dir.glob(f"{data_type}*.csv"))
-            # Select classifier '-with_distance' file
-            clf_candidates = [p for p in csv_files if "classifier" in p.name.lower() and "with_distance" in p.name.lower()]
-            if not clf_candidates:
-                clf_candidates = [p for p in csv_files if "classifier" in p.name.lower()]
-            clf_csv = clf_candidates[0] if clf_candidates else None
+            
+            # Process each backend separately
+            for backend in backends_to_process:
+                print(f"  Processing backend: {backend} - {data_type}")
+                
+                # Select classifier file for this backend
+                clf_candidates = [
+                    p for p in csv_files 
+                    if "classifier" in p.name.lower() 
+                    and "with_distance" in p.name.lower()
+                    and _get_backend_label(p.name) == backend
+                ]
+                if not clf_candidates:
+                    clf_candidates = [
+                        p for p in csv_files 
+                        if "classifier" in p.name.lower()
+                        and _get_backend_label(p.name) == backend
+                    ]
+                clf_csv = clf_candidates[0] if clf_candidates else None
 
-            # Select regression '-with_distance' file (regression_with_negatives)
-            reg_candidates = [p for p in csv_files if "regression" in p.name.lower() and "with_distance" in p.name.lower()]
-            if not reg_candidates:
-                reg_candidates = [p for p in csv_files if "regression" in p.name.lower()]
-            reg_csv = reg_candidates[0] if reg_candidates else None
+                # Select regression file for this backend
+                reg_candidates = [
+                    p for p in csv_files 
+                    if "regression" in p.name.lower() 
+                    and "with_distance" in p.name.lower()
+                    and _get_backend_label(p.name) == backend
+                ]
+                if not reg_candidates:
+                    reg_candidates = [
+                        p for p in csv_files 
+                        if "regression" in p.name.lower()
+                        and _get_backend_label(p.name) == backend
+                    ]
+                reg_csv = reg_candidates[0] if reg_candidates else None
 
-            if not hasattr(run_all, "_collected"):
-                run_all._collected = {"classifier": {dt: [] for dt in DATA_TYPES},
-                                       "regression_with_negatives": {dt: [] for dt in DATA_TYPES}}
+                # Process classifier results
+                if clf_csv is None:
+                    print(f"    WARNING: no classifier CSV found for {encoding} / {data_type} / {backend}")
+                    run_all._collected[backend]["classifier"][data_type].append({
+                        "encoding": encoding, 
+                        "backend": backend
+                    })
+                else:
+                    clf_row = _summarize(clf_csv, CLF_METRIC_MAP)
+                    clf_row["encoding"] = encoding
+                    clf_row["backend"] = backend
+                    run_all._collected[backend]["classifier"][data_type].append(clf_row)
+                    print(f"    ✓ Loaded classifier: {clf_csv.name}")
 
-            if clf_csv is None:
-                print(f"  WARNING: no classifier CSV found for {encoding} / {data_type}")
-                run_all._collected["classifier"][data_type].append({"encoding": encoding})
-            else:
-                clf_row = _summarize(clf_csv, CLF_METRIC_MAP)
-                clf_row["encoding"] = encoding
-                run_all._collected["classifier"][data_type].append(clf_row)
+                # Process regression results
+                if reg_csv is None:
+                    print(f"    WARNING: no regression CSV found for {encoding} / {data_type} / {backend}")
+                    run_all._collected[backend]["regression_with_negatives"][data_type].append({
+                        "encoding": encoding,
+                        "backend": backend
+                    })
+                else:
+                    reg_row = _summarize(reg_csv, REG_METRIC_MAP)
+                    reg_row["encoding"] = encoding
+                    reg_row["backend"] = backend
+                    run_all._collected[backend]["regression_with_negatives"][data_type].append(reg_row)
+                    print(f"    ✓ Loaded regression: {reg_csv.name}")
 
-            if reg_csv is None:
-                print(f"  WARNING: no regression CSV found for {encoding} / {data_type}")
-                run_all._collected["regression_with_negatives"][data_type].append({"encoding": encoding})
-            else:
-                reg_row = _summarize(reg_csv, REG_METRIC_MAP)
-                reg_row["encoding"] = encoding
-                run_all._collected["regression_with_negatives"][data_type].append(reg_row)
-
-    # Build and save the 4 summary CSVs (one row per encoding)
+    # Build and save summary CSVs for each backend
     collected = getattr(run_all, "_collected", None)
     if collected is None:
         print("No results collected.")
         return
 
+    for backend in backends_to_process:
+        print(f"\n{'='*60}")
+        print(f"Generating summaries for backend: {backend.upper()}")
+        print(f"{'='*60}")
+        
+        for model_type in ["classifier", "regression_with_negatives"]:
+            task_label = "classification" if model_type == "classifier" else "regression"
+            for data_type in DATA_TYPES:
+                rows = collected[backend][model_type][data_type]
+                summary_df = pd.DataFrame(rows)
+                
+                # Put 'encoding' and 'backend' as first columns if present
+                first_cols = [c for c in ["encoding", "backend"] if c in summary_df.columns]
+                other_cols = [c for c in summary_df.columns if c not in first_cols]
+                summary_df = summary_df[first_cols + other_cols]
+
+                out_path = OUTPUT_DIR / f"summary_{task_label}_{data_type}_{backend}.csv"
+                summary_df.to_csv(out_path, index=False)
+                print(f"\nSaved: {out_path}")
+                print(summary_df.to_string(index=False))
+    
+    # Also create combined summary with all backends
+    print(f"\n{'='*60}")
+    print(f"Generating combined summaries (all backends)")
+    print(f"{'='*60}")
+    
     for model_type in ["classifier", "regression_with_negatives"]:
         task_label = "classification" if model_type == "classifier" else "regression"
         for data_type in DATA_TYPES:
-            rows = collected[model_type][data_type]
-            summary_df = pd.DataFrame(rows)
-            # Put 'encoding' as first column if present
-            if "encoding" in summary_df.columns:
-                cols = ["encoding"] + [c for c in summary_df.columns if c != "encoding"]
-                summary_df = summary_df[cols]
+            all_rows = []
+            for backend in backends_to_process:
+                all_rows.extend(collected[backend][model_type][data_type])
+            
+            summary_df = pd.DataFrame(all_rows)
+            
+            # Put 'encoding' and 'backend' as first columns if present
+            first_cols = [c for c in ["encoding", "backend"] if c in summary_df.columns]
+            other_cols = [c for c in summary_df.columns if c not in first_cols]
+            summary_df = summary_df[first_cols + other_cols]
 
-            out_path = OUTPUT_DIR / f"summary_{task_label}_{data_type}.csv"
+            out_path = OUTPUT_DIR / f"summary_{task_label}_{data_type}_all_backends.csv"
             summary_df.to_csv(out_path, index=False)
             print(f"\nSaved: {out_path}")
             print(summary_df.to_string(index=False))

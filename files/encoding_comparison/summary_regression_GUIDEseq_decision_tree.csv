@@ -1,0 +1,9 @@
+encoding,backend,pearson_mean,pearson_std,spearman_mean,spearman_std,rmse_mean,rmse_std
+NPM,decision_tree,-0.0002,0.0061,0.0034,0.027,153.3479,149.5351
+OneHot,decision_tree,0.0121,0.0282,0.0117,0.0244,147.1066,151.5646
+OneHot5Channel,decision_tree,0.0016,0.0086,0.0014,0.0107,150.3139,147.7117
+LabelEncodingPairwise,decision_tree,0.0293,0.013,0.0593,0.0392,170.145,136.7411
+OneHotVstack,decision_tree,0.0008,0.0077,0.0101,0.0205,152.8064,148.2254
+MM,decision_tree,0.0029,0.0111,0.0115,0.0184,157.896,142.3784
+kmer,decision_tree,0.0165,0.0457,0.01,0.0266,156.0745,144.5603
+bulges,decision_tree,0.035,0.1136,0.0334,0.1018,154.1124,146.5499

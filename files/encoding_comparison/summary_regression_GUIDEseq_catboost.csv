@@ -1,0 +1,9 @@
+encoding,backend,pearson_mean,pearson_std,spearman_mean,spearman_std,rmse_mean,rmse_std
+NPM,catboost,0.6846,0.1789,0.0397,0.0295,132.918,145.5059
+OneHot,catboost,0.6344,0.1916,0.0393,0.0292,138.8934,148.8704
+OneHot5Channel,catboost,0.738,0.1589,0.0397,0.0293,135.9193,148.2506
+LabelEncodingPairwise,catboost,0.612,0.1767,0.0395,0.0293,137.347,147.5713
+OneHotVstack,catboost,0.6886,0.1879,0.0394,0.0287,137.1754,147.8131
+MM,catboost,0.3017,0.1321,0.0383,0.0279,163.9842,146.2449
+kmer,catboost,0.301,0.1324,0.0384,0.028,162.4389,140.7519
+bulges,catboost,0.6859,0.1772,0.0397,0.0296,133.1015,145.9198
