@@ -1,0 +1,9 @@
+method1,method2,metric,n_targets,mean_method1,mean_method2,median_method1,median_method2,std_method1,std_method2,mean_diff,median_diff,normality_method1,normality_method2,test,statistic,p_value,significant_0.05,significant_0.01,significant_0.001,cohens_d,winner,encoding
+CatBoost,XGBoost,aupr,110,,,,,,,,,False,False,Wilcoxon,,,False,False,False,0,No significant difference,NPM
+CatBoost,XGBoost,aupr,110,,,,,,,,,False,False,Wilcoxon,,,False,False,False,0,No significant difference,OneHot
+CatBoost,XGBoost,aupr,110,,,,,,,,,False,False,Wilcoxon,,,False,False,False,0,No significant difference,OneHot5Channel
+CatBoost,XGBoost,aupr,110,,,,,,,,,False,False,Wilcoxon,,,False,False,False,0,No significant difference,OneHotVstack
+CatBoost,XGBoost,aupr,110,,,,,,,,,False,False,Wilcoxon,,,False,False,False,0,No significant difference,kmer
+CatBoost,XGBoost,aupr,110,,,,,,,,,False,False,Wilcoxon,,,False,False,False,0,No significant difference,LabelEncodingPairwise
+CatBoost,XGBoost,aupr,110,,,,,,,,,False,False,Wilcoxon,,,False,False,False,0,No significant difference,bulges
+CatBoost,XGBoost,aupr,110,,,,,,,,,False,False,Wilcoxon,,,False,False,False,0,No significant difference,MM

@@ -1,0 +1,285 @@
+================================================================================
+PAPER REVIEW: TECHNICAL AND STYLISTIC IMPROVEMENTS
+Cross-Assay Generalization of ML Models for CRISPR-Cas9 Off-Target Prediction
+================================================================================
+
+CRITICAL TECHNICAL ISSUES:
+==========================
+
+1. **DUPLICAZIONE TESTO - SEZIONE EXPLAINABILITY**
+   Location: Fine della Section 6 (Explainability)
+   Problem: L'intero paragrafo iniziale della sezione è ripetuto alla fine
+   Fix: Rimuovere la duplicazione. Il paragrafo "To understand why positional 
+        representations..." appare due volte identico.
+
+2. **INCONSISTENZA NUMERICA - ABSTRACT vs TABLE 2**
+   Location: Abstract + Table 2
+   Problem: Abstract dice "AUPR ≈ 0.63-0.66" ma Table 2 mostra 0.660 e 0.659
+   Fix: Cambiare abstract in "AUPR = 0.63-0.66" (senza ≈) oppure "AUPR ≈ 0.66"
+        per essere più accurati con i numeri effettivi
+
+3. **CONFUSIONE DATASET NELLE METRICHE**
+   Location: Table 2 caption
+   Problem: Caption dice "Top GUIDEseq Performance (OOF)" ma non è chiaro se 
+            questi sono risultati su CHANGEseq (training/validation) o su 
+            GUIDEseq (test finale)
+   Fix: Specificare chiaramente: "Performance on GUIDEseq test set using 
+        models trained on CHANGEseq with OOF strategy"
+
+4. **FIGURA 2 - INCONSISTENZA DATASET**
+   Location: Figure 2 caption
+   Problem: Caption dice "Classification AUPR on CHANGEseq" ma il paper enfatizza 
+            la cross-assay generalization su GUIDEseq
+   Fix: Chiarire se questa figura mostra:
+        - Validation performance durante training (CHANGEseq OOF)
+        - Test performance finale (GUIDEseq)
+        Suggerimento: Probabilmente è CHANGEseq validation, quindi aggiungere
+        "(10-fold CV validation)" al caption
+
+5. **STATISTICHE AMBIGUE**
+   Location: Table 2, caption "Mean ± Std across 110 sgRNAs"
+   Problem: Non è chiaro cosa significa "across 110 sgRNAs"
+   Fix: Specificare meglio:
+        - Se è la media delle performance per-sgRNA: "Per-sgRNA AUPR averaged 
+          across 110 sgRNAs"
+        - Se è aggregato: "AUPR computed on all test samples aggregated across 
+          110 sgRNAs"
+
+6. **MANCANZA DI NUMERI IN ALCUNE AFFERMAZIONI**
+   Location: Section 4.4, "CatBoost outperformed XGBoost in 6 out of 8 encodings"
+   Problem: Non si specificano QUALI 6 encodings
+   Fix: Aggiungere: "(NPM, OneHot, OneHot5Channel, OneHotVstack, bulges, MM)"
+
+7. **FIGURA 3 - CHIAREZZA SUL DATASET**
+   Location: Figure 3 caption
+   Problem: Dice "Evaluated on 10,000 GUIDEseq examples" ma va chiarito che 
+            il modello è trainato su CHANGEseq
+   Fix: "SHAP values computed on 10,000 GUIDEseq test examples using CatBoost 
+        models trained on CHANGEseq"
+
+8. **INCONSISTENZA k-mer DIMENSIONE**
+   Location: Table 2 (encoding properties)
+   Problem: k-mer è listato con "Dim. 64" ma nel debug visto prima c'erano 
+            problemi con dimensioni diverse (768 vs 780)
+   Fix: Verificare la dimensione effettiva di k-mer con distance feature
+        (dovrebbe essere 256 + 1 = 257 per 4-mers, non 64)
+
+
+PROBLEMI STILISTICI:
+===================
+
+9. **LINGUAGGIO TROPPO INFORMALE/DRAMMATICO**
+   Locations multiple:
+   - "massive dynamic range" → "wide dynamic range"
+   - "massive performance gap" → "substantial performance gap" 
+   - "vastly outperformed" → "significantly outperformed"
+   - "hunting for arbitrary" → "identifying non-specific"
+   - "fail because they mathematically collapse" → "fail due to loss of"
+   Tone: Mantenere tono accademico formale, evitare aggettivi drammatici
+
+10. **RIPETIZIONE ECCESSIVA DI "CROSS-ASSAY"**
+    Problem: "cross-assay" appare 11 volte, spesso ridondante
+    Fix: Usare sinonimi o riformulare:
+         - "transfer learning performance"
+         - "generalization across assays"
+         - "inter-assay validation"
+         - "out-of-distribution evaluation"
+
+11. **TRANSIZIONI BRUSCHE TRA SEZIONI**
+    Location: Fine Section 4.4 → inizio Section 5
+    Problem: Salto diretto da "Encoding Comparison" a "Explainability" senza 
+             collegamento
+    Fix: Aggiungere frase di transizione:
+         "Having established the superiority of positional encodings 
+         quantitatively, we now investigate the mechanistic basis of this 
+         advantage through model explainability analysis."
+
+12. **ABSTRACT TROPPO DENSO**
+    Problem: Troppe informazioni numeriche specifiche nell'abstract
+    Fix: Semplificare alcuni numeri:
+         - "AUPR ≈ 0.63-0.66" ✓ OK
+         - "Pearson ≈ 0.74-0.76" ✓ OK
+         - "6 out of 8 encodings" → "majority of encodings"
+         - "78% higher AUPR" → "substantially higher AUPR (~78%)"
+
+13. **CAPTION FIGURE 1 (Figure 2 nel paper)**
+    Problem: Caption troppo corto, non spiega cosa sono le error bars
+    Fix: Aggiungere: "Error bars represent standard deviation across sgRNAs. 
+         CatBoost (orange) significantly outperforms XGBoost (blue) in 6/8 
+         encodings (Wilcoxon test, p < 0.001, Bonferroni corrected)."
+
+14. **MISMATCH TERMINOLOGIA**
+    Problem: Si alterna tra "backend models" e "models" e "algorithms"
+    Fix: Scegliere un termine e mantenerlo consistente. Suggerimento: 
+         "machine learning backends" o semplicemente "models"
+
+15. **SECTION 2 (RELATED WORK) - TROPPO LUNGA**
+    Problem: Il paragrafo "Novelty of Our Approach" è molto denso
+    Fix: Spezzare in 2-3 paragrafi più corti:
+         Paragraph 1: Encoding comparison novelty
+         Paragraph 2: CatBoost introduction
+         Paragraph 3: Explainability layer
+
+
+MIGLIORAMENTI METODOLOGICI:
+===========================
+
+16. **VALIDATION STRATEGY - CONFUSIONE OOF**
+    Location: Section 3.3
+    Problem: Non è chiarissimo come funziona l'OOF su GUIDEseq
+    Fix: Aggiungere esempio concreto:
+         "For instance, if sgRNA 'ACGT...' was held out in Fold 3 during 
+         CHANGEseq training, all GUIDEseq predictions for that same sgRNA 
+         are made exclusively using the Fold 3 model, ensuring zero leakage."
+
+17. **HYPERPARAMETER TUNING - MANCANZA DETTAGLI**
+    Location: Section 3.2
+    Problem: Si dice "optimized via random search" ma non si specificano i ranges
+    Fix: Aggiungere nota: "Detailed hyperparameter ranges and optimal 
+         configurations are provided in Supplementary Materials" 
+         OPPURE aggiungere una tabella con i parametri ottimali
+
+18. **STATISTICAL TESTING - BONFERRONI CALCULATION**
+    Location: Section 3.4
+    Problem: Si dice "24 pairwise comparisons" ma non è chiaro da dove viene 
+             questo numero
+    Fix: Specificare: "24 pairwise comparisons = 3 backends × 8 encodings"
+         oppure "C(3,2) × 8 = 24 pairwise backend comparisons across encodings"
+
+19. **TABLE 1 - MANCA INFO CRUCIALE**
+    Location: Table 1 (Dataset Statistics)
+    Problem: Non si menziona che i 74 shared sgRNAs sono il motivo per cui serve OOF
+    Fix: Aggiungere riga: "Overlap sgRNAs: 74 shared (67% of GUIDEseq)"
+         E nota a piè di pagina: "Shared sgRNAs motivate OOF strategy to 
+         prevent data leakage"
+
+
+MIGLIORAMENTI FIGURE:
+====================
+
+20. **FIGURE 2 - LEGGIBILITÀ ASSI**
+    Problem: Font size degli assi X potrebbe essere troppo piccolo
+    Fix: Nel codice LaTeX, cambiare "font=\small" → "font=\normalsize" 
+         per x tick labels
+
+21. **FIGURE 3 (SHAP) - MANCA LEGENDA COLORI**
+    Problem: Caption menziona "red dots" e "blue dots" ma non spiega cosa 
+             rappresentano
+    Fix: Aggiungere nella caption: "Color intensity represents feature value 
+         (red = high, blue = low); x-axis shows SHAP value (impact on 
+         prediction)."
+
+22. **AGGIUNGERE FIGURE 1 - WORKFLOW DIAGRAM**
+    Suggestion: Aggiungere un diagramma di workflow che mostra:
+         CHANGEseq → Training (10-fold OOF) → Models → GUIDEseq Testing
+         Questo aiuterebbe i lettori a capire il setup sperimentale
+
+23. **TABLE 2 - FORMATTAZIONE**
+    Problem: La tabella è un po' compressa, difficile da leggere
+    Fix: Considerare di spezzarla in due tabelle separate:
+         - Table 2a: Classification results
+         - Table 2b: Regression results
+
+
+MIGLIORAMENTI CONTENUTO:
+========================
+
+24. **DISCUSSION/LIMITATIONS SECTION MANCANTE**
+    Problem: Non c'è una sezione che discute i limiti del lavoro
+    Fix: Aggiungere una breve sezione "Discussion and Limitations" prima 
+         della Conclusion che menzioni:
+         - Limitazione a SpCas9, non altri Cas variants
+         - Focus su 2 assays specifici
+         - Possibile overfitting a specifiche caratteristiche di CHANGEseq
+
+25. **FUTURE WORK**
+    Problem: La Conclusion non menziona possibili sviluppi futuri
+    Fix: Aggiungere 1-2 frasi su:
+         - Estensione ad altri Cas variants
+         - Integrazione di features epigenetiche
+         - Validazione su dataset più recenti
+
+26. **ACKNOWLEDGMENTS - POSIZIONE**
+    Problem: Gli Acknowledgments sono dopo la Conclusion ma prima della 
+             bibliografia (non standard)
+    Fix: Spostare dopo la bibliografia oppure prima della Conclusion
+         (dipende dalle linee guida del journal target)
+
+
+CORREZIONI GRAMMATICALI/TYPOS:
+==============================
+
+27. **INCONSISTENZA VIRGOLE DECIMALI**
+    Problem: Si usa "." per decimali (stile inglese) ma sei italiano
+    Fix: Mantenere "." (corretto per paper in inglese) ✓
+
+28. **CITAZIONI INCOMPLETE**
+    Location: Bibliografia
+    Problem: File references.bib non fornito, impossibile verificare
+    Fix: Assicurarsi che tutte le citazioni esistano e siano formattate 
+         correttamente (usa unsrt style)
+
+
+PRIORITÀ DELLE MODIFICHE:
+=========================
+
+MUST FIX (Critico):
+1. Rimuovere duplicazione testo (Issue #1)
+2. Chiarire dataset in Table 2 e Figure 2 (Issues #3, #4)
+3. Verificare dimensione k-mer (Issue #8)
+4. Aggiungere chiarezza OOF strategy (Issue #16)
+
+SHOULD FIX (Importante):
+5. Migliorare captions delle figure (Issues #13, #21)
+6. Aggiungere transizioni (Issue #11)
+7. Sistemare linguaggio troppo informale (Issue #9)
+8. Aggiungere Discussion/Limitations (Issue #24)
+
+NICE TO HAVE (Miglioramenti):
+9. Spezzare Related Work (Issue #15)
+10. Aggiungere workflow diagram (Issue #22)
+11. Usare sinonimi per "cross-assay" (Issue #10)
+12. Aggiungere future work (Issue #25)
+
+
+SUGGERIMENTI SPECIFICI PER MIGLIORARE LA CHIAREZZA:
+===================================================
+
+Per Section 4.2 (Overall Performance):
+---------------------------------------
+Attuale: "Table 2 presents top configurations."
+Migliorato: "Table 2 presents the best-performing configurations for each 
+backend on the held-out GUIDEseq test set, demonstrating successful 
+cross-assay generalization."
+
+Per Section 4.3 (Backend Comparison):
+-------------------------------------
+Attuale: "CatBoost significantly outperformed XGBoost in 6 out of 8 encodings"
+Migliorato: "CatBoost significantly outperformed XGBoost in 6 out of 8 
+encodings (NPM, OneHot, OneHot5Channel, OneHotVstack, bulges, and MM; 
+p < 0.01, Bonferroni-corrected Wilcoxon tests)"
+
+Per Section 5 (Explainability):
+-------------------------------
+Attuale: "SHAP values were aggregated over a representative sample of 
+10,000 GUIDEseq test examples."
+Migliorato: "To ensure computational tractability while maintaining 
+statistical representativeness, we computed SHAP values on a stratified 
+random sample of 10,000 GUIDEseq test examples (1,000 per fold)."
+
+
+CHECKLIST FINALE PRIMA DELLA SUBMISSION:
+========================================
+[ ] Verificare che tutti i numeri nelle tabelle corrispondano ai risultati reali
+[ ] Controllare che ogni figura sia referenziata nel testo
+[ ] Verificare che tutte le citazioni siano presenti in references.bib
+[ ] Controllare che i valori di p siano consistenti (p < 0.001 vs p < 0.01)
+[ ] Verificare che le dimensioni degli encoding in Table 3 siano corrette
+[ ] Fare spell-check completo
+[ ] Verificare che le caption delle figure siano auto-esplicative
+[ ] Controllare la numerazione delle sezioni
+[ ] Verificare che lo stile bibliografico sia quello richiesto dal venue
+
+================================================================================
+END OF REVIEW
+================================================================================

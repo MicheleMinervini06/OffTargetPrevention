@@ -25,6 +25,52 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
+# Cache missing files already reported to avoid printing the same warning repeatedly.
+_REPORTED_MISSING_FILES = set()
+
+
+def _resolve_results_file_path(filename: str, encoding: str, model_type: str, data_type: str) -> str:
+    """
+    Resolve the metrics CSV path across current and legacy directory layouts.
+
+    Notes:
+    - In this project many GUIDEseq result files are stored under the CHANGEseq training
+      directory but keep GUIDEseq in the filename.
+    - We also support both `models_10_fold` and `models_10fold` roots.
+    """
+    root_candidates = [
+        os.path.join("files", "models_10_fold", "new_models"),
+        os.path.join("files", "models_10fold", "new_models"),
+    ]
+    train_dir_candidates = [data_type, "CHANGEseq"]
+
+    candidate_paths = []
+    for root in root_candidates:
+        for train_dir in train_dir_candidates:
+            candidate_paths.append(
+                os.path.join(root, train_dir, "include_on_targets", "results", encoding, filename)
+            )
+            candidate_paths.append(
+                os.path.join(
+                    root,
+                    train_dir,
+                    "include_on_targets",
+                    model_type,
+                    "test_results_include_on_targets",
+                    "results",
+                    encoding,
+                    filename,
+                )
+            )
+
+    for path in candidate_paths:
+        if os.path.exists(path):
+            return path
+
+    # Return first candidate for a consistent warning message.
+    return candidate_paths[0]
+
+
 def normalize_backend_name(backend: str) -> str:
     """Normalize backend aliases to the filename convention used in results."""
     backend_norm = backend.lower()
@@ -117,13 +163,12 @@ def load_per_target_metrics(
     filename = (f"{data_type}_{model_type}_results_{model_backend}_model_"
                f"all_10_folds{distance_str}_imbalanced{encoding_suffix}.csv")
     
-    # Use os.path.join for Windows compatibility
-    base_path = os.path.join("files", "models_10_fold", "new_models", data_type, 
-                              "include_on_targets", "results", encoding)
-    file_path = os.path.join(base_path, filename)
+    file_path = _resolve_results_file_path(filename, encoding, model_type, data_type)
     
     if not os.path.exists(file_path):
-        print(f"Warning: File not found: {file_path}")
+        if file_path not in _REPORTED_MISSING_FILES:
+            print(f"Warning: File not found: {file_path}")
+            _REPORTED_MISSING_FILES.add(file_path)
         return None
     
     try:
