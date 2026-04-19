@@ -48,3 +48,16 @@ decision_tree*
 #catboost info
 catboost_info/
 
+# generated figures and paper fragments in project root
+figure_*.tex
+preamble_additions.tex
+section_results_replacement.tex
+shap_summary_*.png
+shap_bar_*.png
+
+# local model artifacts
+Best_Models/
+*.cbm
+*.pkl
+*.joblib
+
